@@ -14,16 +14,24 @@ public class GameController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetMouseButtonDown(0))
+        {
 
-    if (Input.GetMouseButtonDown(0))
-    {
+          RaycastHit2D hit = Physics2D.Raycast(main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+          if(hit)
+          {
+            selectedUnit = hit.collider.gameObject;
+            Debug.Log(hit.collider.transform.name);
+          }
+        }
 
-      RaycastHit2D hit = Physics2D.Raycast(main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-      if(hit)
-      {
-        selectedUnit = hit.collider.gameObject;
-        Debug.Log(hit.collider.transform.name);
-      }
-    }
+        if (Input.GetMouseButtonDown(1) && selectedUnit != null)
+        {
+            Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
+            pos.x = Mathf.Round(pos.x);
+            pos.y = Mathf.Round(pos.y);
+            pos.z = 0;
+            selectedUnit.transform.position = pos;
+        }
 	}
 }
