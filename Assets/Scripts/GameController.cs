@@ -4,6 +4,9 @@ using System;
 
 public class GameController : MonoBehaviour
 {
+  // TODO move to class that deals with constants
+  public static int DiceRange = 20;
+
 
   public Camera main;
 
@@ -160,9 +163,16 @@ public class GameController : MonoBehaviour
         Debug.Log(hit.collider.transform.name);
         Stack hitStack = hit.collider.gameObject.GetComponent<Stack>();
         Stack curStack = selectedUnit.gameObject.GetComponent<Stack>();
-        if (hitStack != null && curStack != null)
+        if (hitStack != null && curStack != null && curStack != hitStack)
         {
           // Do battle
+          if (curStack.Battle(hitStack))
+          {
+            Destroy(hit.transform.gameObject);
+          } else
+          {
+            Destroy(selectedUnit);
+          }
         }
       }
       Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
