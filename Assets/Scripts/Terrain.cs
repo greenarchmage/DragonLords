@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 
-public class Terrain
+public class TerrainTile
 {
   public enum TerrainType
   {

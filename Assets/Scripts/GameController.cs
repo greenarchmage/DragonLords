@@ -21,13 +21,13 @@ public class GameController : MonoBehaviour
 
     #region TempTerrain
     // temp manual terrain 
-    Terrain.TerrainType[,] terrainLayout = new Terrain.TerrainType[20,20];
+    TerrainTile.TerrainType[,] terrainLayout = new TerrainTile.TerrainType[20,20];
     // Fill with grass
     for(int i = 0; i<terrainLayout.GetLength(0); i++)
     {
       for(int j = 0; j < terrainLayout.GetLength(1); j++)
       {
-        terrainLayout[i, j] = Terrain.TerrainType.Grass;
+        terrainLayout[i, j] = TerrainTile.TerrainType.Grass;
       }
     }
     // top left castle
@@ -44,51 +44,51 @@ public class GameController : MonoBehaviour
     // top right forest
     for(int i = 0; i < 4; i++)
     {
-      terrainLayout[16 + i, 0] = Terrain.TerrainType.Forest;
+      terrainLayout[16 + i, 0] = TerrainTile.TerrainType.Forest;
     }
-    terrainLayout[19, 1] = Terrain.TerrainType.Forest;
-    terrainLayout[19, 2] = Terrain.TerrainType.Forest;
+    terrainLayout[19, 1] = TerrainTile.TerrainType.Forest;
+    terrainLayout[19, 2] = TerrainTile.TerrainType.Forest;
 
     // bottom left forest
     for(int i = 0; i < 2; i++)
     {
       for(int j = 0; j < 2; j++)
       {
-        terrainLayout[4+i, 17+j] = Terrain.TerrainType.Forest;
+        terrainLayout[4+i, 17+j] = TerrainTile.TerrainType.Forest;
       }
     }
-    terrainLayout[6, 18] = Terrain.TerrainType.Forest;
+    terrainLayout[6, 18] = TerrainTile.TerrainType.Forest;
 
     // center mountain
-    terrainLayout[9, 4] = Terrain.TerrainType.Mountain;
-    terrainLayout[9, 5] = Terrain.TerrainType.Mountain;
+    terrainLayout[9, 4] = TerrainTile.TerrainType.Mountain;
+    terrainLayout[9, 5] = TerrainTile.TerrainType.Mountain;
     for(int i = 0; i<2; i++)
     {
       for(int j=0; j < 2; j++)
       {
-        terrainLayout[7+i, 5+j] = Terrain.TerrainType.Mountain;
+        terrainLayout[7+i, 5+j] = TerrainTile.TerrainType.Mountain;
       }
     }
-    terrainLayout[6, 7] = Terrain.TerrainType.Mountain;
-    terrainLayout[7, 7] = Terrain.TerrainType.Mountain;
+    terrainLayout[6, 7] = TerrainTile.TerrainType.Mountain;
+    terrainLayout[7, 7] = TerrainTile.TerrainType.Mountain;
 
     // center road
     for (int i = 0; i < 7; i++)
     {
-      terrainLayout[9, 8 + i] = Terrain.TerrainType.Road;
+      terrainLayout[9, 8 + i] = TerrainTile.TerrainType.Road;
     }
 
     // Center bridge, overwrites road
-    terrainLayout[9, 12] = Terrain.TerrainType.Bridge;
+    terrainLayout[9, 12] = TerrainTile.TerrainType.Bridge;
 
     // bottom road
     for (int i = 0; i < 2; i++)
     {
-      terrainLayout[11+i, 16] = Terrain.TerrainType.Road;
+      terrainLayout[11+i, 16] = TerrainTile.TerrainType.Road;
     }
     for (int i = 0; i < 4; i++)
     {
-      terrainLayout[12+i, 17] = Terrain.TerrainType.Road;
+      terrainLayout[12+i, 17] = TerrainTile.TerrainType.Road;
     }
 
     // water
@@ -104,7 +104,7 @@ public class GameController : MonoBehaviour
     {
       for(int j = 0; j < 3; j++)
       {
-        terrainLayout[8+i, 0+j] = Terrain.TerrainType.Water;
+        terrainLayout[8+i, 0+j] = TerrainTile.TerrainType.Water;
       }
     }
 
@@ -173,33 +173,33 @@ public class GameController : MonoBehaviour
     }
   }
 
-  private void tempBuildCastle(Terrain.TerrainType[,] terrainLayout ,int xcoord, int ycoord)
+  private void tempBuildCastle(TerrainTile.TerrainType[,] terrainLayout ,int xcoord, int ycoord)
   {
     for (int i = 0; i < 2; i++)
     {
       for (int j = 0; j < 2; j++)
       {
-        terrainLayout[xcoord + i, ycoord + j] = Terrain.TerrainType.Castle;
+        terrainLayout[xcoord + i, ycoord + j] = TerrainTile.TerrainType.Castle;
       }
     }
   }
 
-  private void tempWaterVertLine(Terrain.TerrainType[,] terrainLayout,int starty, int endy, int x)
+  private void tempWaterVertLine(TerrainTile.TerrainType[,] terrainLayout,int starty, int endy, int x)
   {
     for(int i = 0; i < endy - starty+1; i++)
     {
-      terrainLayout[x, starty+i] = Terrain.TerrainType.Water;
+      terrainLayout[x, starty+i] = TerrainTile.TerrainType.Water;
     }
   }
-  private void tempWaterHoriLine(Terrain.TerrainType[,] terrainLayout, int startx, int endx, int y)
+  private void tempWaterHoriLine(TerrainTile.TerrainType[,] terrainLayout, int startx, int endx, int y)
   {
     for (int i = 0; i < endx - startx+1; i++)
     {
-      terrainLayout[startx + i, y] = Terrain.TerrainType.Water;
+      terrainLayout[startx + i, y] = TerrainTile.TerrainType.Water;
     }
   }
 
-  private void instantiateTerrain(Terrain.TerrainType[,] terrainLayout)
+  private void instantiateTerrain(TerrainTile.TerrainType[,] terrainLayout)
   {
     for (int i = 0; i < terrainLayout.GetLength(0); i++)
     {
@@ -208,25 +208,25 @@ public class GameController : MonoBehaviour
         string terrainType = "GrassPlaceholder";
         switch (terrainLayout[i, j])
         {
-          case Terrain.TerrainType.Grass:
+          case TerrainTile.TerrainType.Grass:
             terrainType = "GrassPlaceholder";
             break;
-          case Terrain.TerrainType.Castle:
+          case TerrainTile.TerrainType.Castle:
             terrainType = "CastlePlaceholder";
             break;
-          case Terrain.TerrainType.Bridge:
+          case TerrainTile.TerrainType.Bridge:
             terrainType = "BridgePlaceholder";
             break;
-          case Terrain.TerrainType.Forest:
+          case TerrainTile.TerrainType.Forest:
             terrainType = "ForestPlaceholder";
             break;
-          case Terrain.TerrainType.Mountain:
+          case TerrainTile.TerrainType.Mountain:
             terrainType = "MountainPlaceholder";
             break;
-          case Terrain.TerrainType.Road:
+          case TerrainTile.TerrainType.Road:
             terrainType = "RoadPlaceholder";
             break;
-          case Terrain.TerrainType.Water:
+          case TerrainTile.TerrainType.Water:
             terrainType = "WaterPlaceholder";
             break;
           default:
