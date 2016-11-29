@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using Assets.Scripts.Pathfinding;
 
 public class GameController : MonoBehaviour
 {
@@ -137,6 +138,17 @@ public class GameController : MonoBehaviour
     Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
     enemyStack.Owner = enemy;
     enemyStack.Units.Add(new Unit(3, 3));
+
+    bool[,] testmap = {
+                {true , true , false, true , true , true },
+                {false, true , false, true , true , false},
+                {true , true , false, false, true , true },
+                {false, true , true , true , true , false},
+                {false, false, false, false, true , false},
+                {true , true , true , true , true , true },
+
+        };
+    AStar.ShortestPath(testmap, 0, 0, 5, 5);
   }
 
   
