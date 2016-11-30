@@ -25,12 +25,14 @@ namespace Assets.Scripts.Pathfinding
       Node initial = new Node(startX, startY, 0, ManhattanDistance(startX, startY, goalX, goalY));
       openSet.insert(initial);
 
+      Node Parent = null;
       while (!openSet.IsEmpty())
       {
         Node current = openSet.DelMin();
+        current.Parent = Parent;
+        Parent = current;
         if (current.x == goalX && current.y == goalY)
         {
-          // TODO Build list of path
           // http://www.policyalmanac.org/games/aStarTutorial.htm
           for (int i = 0; i < distanceMatrix.GetLength(0); i++)
           {
@@ -38,11 +40,16 @@ namespace Assets.Scripts.Pathfinding
             for(int j = 0; j<distanceMatrix.GetLength(1); j++)
             {
               line += distanceMatrix[i, j] + ", ";
-              //Debug.Log(distanceMatrix[i, j]);
             }
-            Debug.Log(line);
           }
-          return new List<int[]>();// current.costToGetHere;
+          List<int[]> path = new List<int[]>();
+          while(current.Parent != null)
+          {
+            path.Add(new int[] {current.x ,current.y });
+            current = current.Parent;
+          }
+          path.Reverse();
+          return path;
         }
         // search all the neighbours
         List<Node> neighbours = current.generateNeighbours(passable, distanceMatrix, goalX, goalY);
@@ -115,10 +122,11 @@ namespace Assets.Scripts.Pathfinding
 
   public class Node : IComparable<Node>
   {
-    public int x;
-    public int y;
-    public int costToGetHere;
-    public int estimatedCostToGoal;
+    public Node Parent { get; set; }
+    public int x { get; set; }
+    public int y { get; set; }
+    public int costToGetHere { get; set; }
+    public int estimatedCostToGoal { get; set; }
 
     public Node(int x, int y, int costToGetHere, int estimatedCostToGoal)
     {

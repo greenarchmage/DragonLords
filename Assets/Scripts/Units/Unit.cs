@@ -11,6 +11,7 @@ public class Unit {
   public string Name { get; set; }
   public int Strength { get; set; }
   public int Hits { get; set; }
+  public int Speed { get; set; }
   public Unit() { }
   public Unit(int strength, int hits)
   {

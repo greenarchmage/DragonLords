@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using Assets.Scripts.Pathfinding;
+using System.Collections.Generic;
 
 public class GameController : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class GameController : MonoBehaviour
 
   private GameObject selectedUnit;
 
+  private Terrain.TerrainType[,] terrainLayout;
   // Use this for initialization
   void Start()
   {
@@ -25,7 +27,7 @@ public class GameController : MonoBehaviour
 
     #region TempTerrain
     // temp manual terrain 
-    Terrain.TerrainType[,] terrainLayout = new Terrain.TerrainType[20,20];
+    terrainLayout = new Terrain.TerrainType[20,20];
     // Fill with grass
     for(int i = 0; i<terrainLayout.GetLength(0); i++)
     {
@@ -148,7 +150,7 @@ public class GameController : MonoBehaviour
                 {true , true , true , true , true , true },
 
         };
-    AStar.ShortestPath(testmap, 0, 0, 5, 5);
+    List<int[]> path =  AStar.ShortestPath(testmap, 0, 0, 5, 5);
   }
 
   
@@ -169,12 +171,29 @@ public class GameController : MonoBehaviour
 
     if (Input.GetMouseButtonDown(1) && selectedUnit != null)
     {
+      Stack curStack = selectedUnit.gameObject.GetComponent<Stack>();
+      bool[,] passable = generatePassableArray(terrainLayout);
+
+      Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
+      pos.x = Mathf.Round(pos.x);
+      pos.y = Mathf.Round(pos.y);
+      pos.z = 0;
+
+      int dist = AStar.distance(passable, (int)selectedUnit.transform.position.x, (int)selectedUnit.transform.position.y,
+        (int)pos.x, (int)pos.y);
+      Debug.Log("Distance to target " + dist);
+      curStack.Path = AStar.ShortestPath(passable, (int)selectedUnit.transform.position.x, (int)selectedUnit.transform.position.y,
+        (int)pos.x, (int)pos.y);
+
       RaycastHit2D hit = Physics2D.Raycast(main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
       if (hit)
       {
         Debug.Log(hit.collider.transform.name);
         Stack hitStack = hit.collider.gameObject.GetComponent<Stack>();
-        Stack curStack = selectedUnit.gameObject.GetComponent<Stack>();
+
+        // ASTAR test
+        
+
         if (hitStack != null && curStack != null && curStack != hitStack)
         {
           // Do battle
@@ -187,12 +206,37 @@ public class GameController : MonoBehaviour
           }
         }
       }
-      Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
-      pos.x = Mathf.Round(pos.x);
-      pos.y = Mathf.Round(pos.y);
-      pos.z = 0;
-      selectedUnit.transform.position = pos;
+      
+      //selectedUnit.transform.position = pos;
     }
+  }
+
+  private bool[,] generatePassableArray(Terrain.TerrainType[,] terrainLayout)
+  {
+    bool[,] passable = new bool[terrainLayout.GetLength(0), terrainLayout.GetLength(1)];
+    for(int i = 0; i< terrainLayout.GetLength(0); i++)
+    {
+      for(int j=0; j< terrainLayout.GetLength(1); j++)
+      {
+        switch (terrainLayout[i, j])
+        {
+          case Terrain.TerrainType.Grass:
+            passable[i, j] = true;
+            break;
+          case Terrain.TerrainType.Bridge:
+            passable[i, j] = true;
+            break;
+          case Terrain.TerrainType.Road:
+            passable[i, j] = true;
+            break;
+          default:
+            passable[i, j] = false;
+            break;
+        }
+      }
+    }
+
+    return passable;
   }
 
   private void tempBuildCastle(Terrain.TerrainType[,] terrainLayout ,int xcoord, int ycoord)

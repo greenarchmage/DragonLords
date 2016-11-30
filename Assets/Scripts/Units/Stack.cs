@@ -7,18 +7,37 @@ public class Stack : MonoBehaviour
   public Player Owner { get; set; }
   public int StackSize { get; set; }
   public List<Unit> Units { get { return units; } set { units = value; } }
+  public int Movement { get; set; }
+
+  public List<int[]> Path { get; set; }
 
   private List<Unit> units = new List<Unit>();
 
   // Use this for initialization
   void Start()
   {
+
   }
 
   // Update is called once per frame
   void Update()
   {
+    if(Path != null && Path.Count != 0)
+    {
+      Vector3 newpos = new Vector3(Path[0][0], Path[0][1]);
+      transform.position = Vector3.MoveTowards(transform.position, newpos,1);
+      //transform.position = newpos;
+      Path.Remove(Path[0]);
+    }
+  }
 
+
+  public void SetStackStartMovement()
+  {
+    for(int i = 0; i < units.Count; i++)
+    {
+      Movement = Movement > units[i].Speed ? units[i].Speed : Movement;
+    }
   }
 
   public bool Battle(Stack hitStack)
