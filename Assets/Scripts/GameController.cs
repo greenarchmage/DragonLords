@@ -133,6 +133,7 @@ public class GameController : MonoBehaviour
     Stack playerStack = GameObject.Find("PlayerStack").GetComponent<Stack>();
     playerStack.Owner = interactor;
     playerStack.Units.Add(new Unit(3, 3));
+    playerStack.Units.Add(new Unit(3, 3));
 
     Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
     enemyStack.Owner = enemy;
