@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using Assets.Scripts.Pathfinding;
+using System.Collections.Generic;
 
 public class GameController : MonoBehaviour
 {
@@ -12,6 +14,7 @@ public class GameController : MonoBehaviour
 
   private GameObject selectedUnit;
 
+  private TerrainTile.TerrainType[,] terrainLayout;
   // Use this for initialization
   void Start()
   {
@@ -24,7 +27,7 @@ public class GameController : MonoBehaviour
 
     #region TempTerrain
     // temp manual terrain 
-    TerrainTile.TerrainType[,] terrainLayout = new TerrainTile.TerrainType[20,20];
+    terrainLayout = new TerrainTile.TerrainType[20,20];
     // Fill with grass
     for(int i = 0; i<terrainLayout.GetLength(0); i++)
     {
@@ -138,6 +141,17 @@ public class GameController : MonoBehaviour
     Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
     enemyStack.Owner = enemy;
     enemyStack.Units.Add(new Unit(3, 3));
+
+    bool[,] testmap = {
+                {true , true , false, true , true , true },
+                {false, true , false, true , true , false},
+                {true , true , false, false, true , true },
+                {false, true , true , true , true , false},
+                {false, false, false, false, true , false},
+                {true , true , true , true , true , true },
+
+        };
+    List<int[]> path =  AStar.ShortestPath(testmap, 0, 0, 5, 5);
   }
 
   
@@ -158,12 +172,28 @@ public class GameController : MonoBehaviour
 
     if (Input.GetMouseButtonDown(1) && selectedUnit != null)
     {
+      Stack curStack = selectedUnit.gameObject.GetComponent<Stack>();
+      bool[,] passable = generatePassableArray(terrainLayout);
+
+      Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
+      pos.x = Mathf.Round(pos.x);
+      pos.y = Mathf.Round(pos.y);
+      pos.z = 0;
+
+      int dist = AStar.distance(passable, (int)selectedUnit.transform.position.x, (int)selectedUnit.transform.position.y,
+        (int)pos.x, (int)pos.y);
+      curStack.Path = AStar.ShortestPath(passable, (int)selectedUnit.transform.position.x, (int)selectedUnit.transform.position.y,
+        (int)pos.x, (int)pos.y);
+
       RaycastHit2D hit = Physics2D.Raycast(main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
       if (hit)
       {
         Debug.Log(hit.collider.transform.name);
         Stack hitStack = hit.collider.gameObject.GetComponent<Stack>();
-        Stack curStack = selectedUnit.gameObject.GetComponent<Stack>();
+
+        // ASTAR test
+        
+
         if (hitStack != null && curStack != null && curStack != hitStack)
         {
           // Do battle
@@ -176,12 +206,37 @@ public class GameController : MonoBehaviour
           }
         }
       }
-      Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
-      pos.x = Mathf.Round(pos.x);
-      pos.y = Mathf.Round(pos.y);
-      pos.z = 0;
-      selectedUnit.transform.position = pos;
+      
+      //selectedUnit.transform.position = pos;
     }
+  }
+
+  private bool[,] generatePassableArray(TerrainTile.TerrainType[,] terrainLayout)
+  {
+    bool[,] passable = new bool[terrainLayout.GetLength(0), terrainLayout.GetLength(1)];
+    for(int i = 0; i< terrainLayout.GetLength(0); i++)
+    {
+      for(int j=0; j< terrainLayout.GetLength(1); j++)
+      {
+        switch (terrainLayout[i, j])
+        {
+          case TerrainTile.TerrainType.Grass:
+            passable[i, j] = true;
+            break;
+          case TerrainTile.TerrainType.Bridge:
+            passable[i, j] = true;
+            break;
+          case TerrainTile.TerrainType.Road:
+            passable[i, j] = true;
+            break;
+          default:
+            passable[i, j] = false;
+            break;
+        }
+      }
+    }
+
+    return passable;
   }
 
   private void tempBuildCastle(TerrainTile.TerrainType[,] terrainLayout ,int xcoord, int ycoord)
