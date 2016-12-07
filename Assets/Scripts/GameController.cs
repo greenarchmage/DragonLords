@@ -141,17 +141,6 @@ public class GameController : MonoBehaviour
     Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
     enemyStack.Owner = enemy;
     enemyStack.Units.Add(new Unit(3, 3));
-
-    bool[,] testmap = {
-                {true , true , false, true , true , true },
-                {false, true , false, true , true , false},
-                {true , true , false, false, true , true },
-                {false, true , true , true , true , false},
-                {false, false, false, false, true , false},
-                {true , true , true , true , true , true },
-
-        };
-    List<int[]> path =  AStar.ShortestPath(testmap, 0, 0, 5, 5);
   }
 
   
@@ -173,16 +162,14 @@ public class GameController : MonoBehaviour
     if (Input.GetMouseButtonDown(1) && selectedUnit != null)
     {
       Stack curStack = selectedUnit.gameObject.GetComponent<Stack>();
-      bool[,] passable = generatePassableArray(terrainLayout);
 
       Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
       pos.x = Mathf.Round(pos.x);
       pos.y = Mathf.Round(pos.y);
       pos.z = 0;
 
-      int dist = AStar.distance(passable, (int)selectedUnit.transform.position.x, (int)selectedUnit.transform.position.y,
-        (int)pos.x, (int)pos.y);
-      curStack.Path = AStar.ShortestPath(passable, (int)selectedUnit.transform.position.x, (int)selectedUnit.transform.position.y,
+      // Move stack
+      curStack.Path = AStar.ShortestPath(terrainLayout, (int)selectedUnit.transform.position.x, (int)selectedUnit.transform.position.y,
         (int)pos.x, (int)pos.y);
 
       RaycastHit2D hit = Physics2D.Raycast(main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
@@ -190,9 +177,6 @@ public class GameController : MonoBehaviour
       {
         Debug.Log(hit.collider.transform.name);
         Stack hitStack = hit.collider.gameObject.GetComponent<Stack>();
-
-        // ASTAR test
-        
 
         if (hitStack != null && curStack != null && curStack != hitStack)
         {
@@ -206,8 +190,6 @@ public class GameController : MonoBehaviour
           }
         }
       }
-      
-      //selectedUnit.transform.position = pos;
     }
   }
 

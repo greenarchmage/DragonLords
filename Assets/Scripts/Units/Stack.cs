@@ -13,6 +13,8 @@ public class Stack : MonoBehaviour
 
   private List<Unit> units = new List<Unit>();
 
+  private bool posReached = true;
+
   // Use this for initialization
   void Start()
   {
@@ -24,11 +26,19 @@ public class Stack : MonoBehaviour
   {
     if(Path != null && Path.Count != 0)
     {
-      Vector3 newpos = new Vector3(Path[0][0], Path[0][1]);
-      transform.position = Vector3.MoveTowards(transform.position, newpos,1);
-      //transform.position = newpos;
-      Path.Remove(Path[0]);
+      if (Vector3.Distance(transform.position, new Vector3(Path[0][0], Path[0][1])) <= 0)
+      {
+        posReached = true;
+        Path.Remove(Path[0]);
+      }
+      if (!posReached)
+      {
+        Vector3 newpos = new Vector3(Path[0][0], Path[0][1]);
+        transform.position = Vector3.MoveTowards(transform.position, newpos, 0.05f);
+      }
+      posReached = false;
     }
+    
   }
 
 
