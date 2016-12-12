@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.Pathfinding;
 
 public class Stack : MonoBehaviour
 {
@@ -9,11 +10,9 @@ public class Stack : MonoBehaviour
   public List<Unit> Units { get { return units; } set { units = value; } }
   public int Movement { get; set; }
 
-  public List<int[]> Path { get; set; }
+  public List<PathNode> Path { get; set; }
 
   private List<Unit> units = new List<Unit>();
-
-  private bool posReached = true;
 
   // Use this for initialization
   void Start()
@@ -26,28 +25,36 @@ public class Stack : MonoBehaviour
   {
     if(Path != null && Path.Count != 0)
     {
-      if (Vector3.Distance(transform.position, new Vector3(Path[0][0], Path[0][1])) <= 0)
+      // clear path if you can't move to next target
+      if (Path.Count > 0 && Movement - Path[0].Cost < 0 || Movement == 0)
       {
-        posReached = true;
+        Path = null;
+      }
+    }
+    if (Path != null && Path.Count != 0 && Movement > 0)
+    {
+      // move towards current target
+      Vector3 newpos = new Vector3(Path[0].Coord[0], Path[0].Coord[1]);
+      transform.position = Vector3.MoveTowards(transform.position, newpos, 0.05f);
+
+      // when target is reached, check if you can move to next target
+      if (Vector3.Distance(transform.position, new Vector3(Path[0].Coord[0], Path[0].Coord[1])) <= 0)
+      {
+        Movement -= Path[0].Cost;
         Path.Remove(Path[0]);
       }
-      if (!posReached)
-      {
-        Vector3 newpos = new Vector3(Path[0][0], Path[0][1]);
-        transform.position = Vector3.MoveTowards(transform.position, newpos, 0.05f);
-      }
-      posReached = false;
     }
-    
   }
 
 
   public void SetStackStartMovement()
   {
+    Movement = int.MaxValue;
     for(int i = 0; i < units.Count; i++)
     {
       Movement = Movement > units[i].Speed ? units[i].Speed : Movement;
     }
+    Debug.Log("Stack movement " + Movement);
   }
 
   public bool Battle(Stack hitStack)
@@ -104,13 +111,4 @@ public class Stack : MonoBehaviour
     }
     return true;
   }
-
-
-
-  //public Stack() { }
-  //public Stack(int stackSize)
-  //{
-  //  StackSize = stackSize;
-  //  Units = new List<Unit>(stackSize);
-  //}
 }
