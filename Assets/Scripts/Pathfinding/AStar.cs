@@ -17,7 +17,7 @@ namespace Assets.Scripts.Pathfinding
       return x >= 0 && y >= 0 && x < array.GetLength(0) && y < array.GetLength(1);
     }
 
-    public static List<PathNode> ShortestPath(TerrainTile[,] terrainLayout, int startX, int startY, int goalX, int goalY)
+    public static List<PathNode> ShortestPath(TerrainTile[,] terrainLayout, bool[,] obstructed, int startX, int startY, int goalX, int goalY)
     {
       int[,] distanceMatrix = new int[terrainLayout.GetLength(0), terrainLayout.GetLength(1)];
       for (int i = 0; i < distanceMatrix.GetLength(0); i++)
@@ -33,7 +33,7 @@ namespace Assets.Scripts.Pathfinding
       PriorityQueueMin<Node> openSet = new PriorityQueueMin<Node>();
       Node initial = new Node(startX, startY, 0, ManhattanDistance(startX, startY, goalX, goalY),terrainLayout[startX,startY].MoveGroup,0);
       initial.MoveCost = 10;
-      openSet.insert(initial);
+      openSet.Insert(initial);
 
       while (!openSet.IsEmpty())
       {
@@ -50,7 +50,7 @@ namespace Assets.Scripts.Pathfinding
           return path;
         }
         // search all the neighbours
-        List<Node> neighbours = current.generateNeighbours(terrainLayout, distanceMatrix, goalX, goalY);
+        List<Node> neighbours = current.generateNeighbours(terrainLayout, obstructed, distanceMatrix, goalX, goalY);
         openSet.insertRange(neighbours);
       }
       // we failed to find the goal
@@ -105,17 +105,17 @@ namespace Assets.Scripts.Pathfinding
     //  return list;
     //}
 
-    public List<Node> generateNeighbours(TerrainTile[,] terrainLayout, int[,] distanceMatrix, int goalX, int goalY)
+    public List<Node> generateNeighbours(TerrainTile[,] terrainLayout,bool[,] obstructed, int[,] distanceMatrix, int goalX, int goalY)
     {
       List<Node> list = new List<Node>();
-      createAndAdd(x + 1, y, goalX, goalY, terrainLayout, distanceMatrix, list);
-      createAndAdd(x + 1, y + 1, goalX, goalY, terrainLayout, distanceMatrix, list);
-      createAndAdd(x + 1, y - 1, goalX, goalY, terrainLayout, distanceMatrix, list);
-      createAndAdd(x - 1, y, goalX, goalY, terrainLayout, distanceMatrix, list);
-      createAndAdd(x - 1, y - 1, goalX, goalY, terrainLayout, distanceMatrix, list);
-      createAndAdd(x - 1, y + 1, goalX, goalY, terrainLayout, distanceMatrix, list);
-      createAndAdd(x, y + 1, goalX, goalY, terrainLayout, distanceMatrix, list);
-      createAndAdd(x, y - 1, goalX, goalY, terrainLayout, distanceMatrix, list);
+      createAndAdd(x + 1, y, goalX, goalY, terrainLayout, obstructed, distanceMatrix, list);
+      createAndAdd(x + 1, y + 1, goalX, goalY, terrainLayout, obstructed, distanceMatrix, list);
+      createAndAdd(x + 1, y - 1, goalX, goalY, terrainLayout, obstructed, distanceMatrix, list);
+      createAndAdd(x - 1, y, goalX, goalY, terrainLayout, obstructed, distanceMatrix, list);
+      createAndAdd(x - 1, y - 1, goalX, goalY, terrainLayout, obstructed, distanceMatrix, list);
+      createAndAdd(x - 1, y + 1, goalX, goalY, terrainLayout, obstructed, distanceMatrix, list);
+      createAndAdd(x, y + 1, goalX, goalY, terrainLayout, obstructed, distanceMatrix, list);
+      createAndAdd(x, y - 1, goalX, goalY, terrainLayout, obstructed, distanceMatrix, list);
 
       return list;
     }
@@ -139,14 +139,15 @@ namespace Assets.Scripts.Pathfinding
     //}
 
     private void createAndAdd(int newX, int newY, int goalX, int goalY, TerrainTile[,] terrainLayout,
-                                int[,] distanceMatrix, List<Node> list)
+                                bool[,] obstructed, int[,] distanceMatrix, List<Node> list)
     {
       if (AStar.exists(newX, newY, terrainLayout))
       {
         bool passableTerrain = false;
         int newCost = this.costToGetHere + terrainLayout[newX, newY].Movecost;
         int moveCost = terrainLayout[newX, newY].Movecost;
-        if( Type == TerrainTile.MoveType.Impassable || terrainLayout[newX, newY].MoveGroup == TerrainTile.MoveType.Impassable)
+        if( Type == TerrainTile.MoveType.Impassable || terrainLayout[newX, newY].MoveGroup == TerrainTile.MoveType.Impassable ||
+          obstructed[newX,newY])
         {
           passableTerrain = false;
         } else

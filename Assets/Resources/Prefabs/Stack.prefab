@@ -22,7 +22,7 @@ GameObject:
   - 212: {fileID: 212000013751863560}
   - 114: {fileID: 114000013260172336}
   - 50: {fileID: 50000012967482534}
-  - 58: {fileID: 58000012230202062}
+  - 61: {fileID: 61000010064185038}
   m_Layer: 0
   m_Name: Stack
   m_TagString: Untagged
@@ -60,8 +60,8 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!58 &58000012230202062
-CircleCollider2D:
+--- !u!61 &61000010064185038
+BoxCollider2D:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -73,7 +73,7 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Size: {x: 0.99, y: 0.99}
 --- !u!114 &114000013260172336
 MonoBehaviour:
   m_ObjectHideFlags: 1

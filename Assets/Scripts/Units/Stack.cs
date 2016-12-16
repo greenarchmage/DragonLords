@@ -2,17 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.Pathfinding;
+using Assets.Scripts.Utility;
 
 public class Stack : MonoBehaviour
 {
   public Player Owner { get; set; }
   public int StackSize { get; set; }
-  public List<Unit> Units { get { return units; } set { units = value; } }
+  //public List<Unit> Units { get { return units; } set { units = value; } }
+  public PriorityQueueMin<Unit> Units { get { return units; } set { units = value; } }
   public int Movement { get; set; }
 
   public List<PathNode> Path { get; set; }
 
-  private List<Unit> units = new List<Unit>();
+  private PriorityQueueMin<Unit> units = new PriorityQueueMin<Unit>();
 
   // Use this for initialization
   void Start()
@@ -50,11 +52,10 @@ public class Stack : MonoBehaviour
   public void SetStackStartMovement()
   {
     Movement = int.MaxValue;
-    for(int i = 0; i < units.Count; i++)
+    foreach (Unit u in units)
     {
-      Movement = Movement > units[i].Speed ? units[i].Speed : Movement;
+      Movement = Movement > u.Speed ? u.Speed : Movement;
     }
-    Debug.Log("Stack movement " + Movement);
   }
 
   public bool Battle(Stack hitStack)
@@ -66,10 +67,10 @@ public class Stack : MonoBehaviour
     while (units.Count != 0 && hitStack.Units.Count != 0)
     {
       //TODO should be done with a priority queue
-      int curUnitInt = 0;
-      Unit curStackUnit = units[curUnitInt];
-      int hitUnitInt = 0;
-      Unit hitStackUnit = hitStack.Units[hitUnitInt];
+      //int curUnitInt = 0;
+      Unit curStackUnit = units.Min();//[curUnitInt];
+      //int hitUnitInt = 0;
+      Unit hitStackUnit = hitStack.Units.Min();//[hitUnitInt];
 
       //Battle section
       //TODO add special abilities
@@ -93,7 +94,7 @@ public class Stack : MonoBehaviour
       if (hitStackUnit.Hits == 0)
       {
         Debug.Log("Hit stack lost unit");
-        hitStack.Units.Remove(hitStackUnit);
+        hitStack.Units.DelMin();//.Remove(hitStackUnit);
         if (hitStack.Units.Count == 0)
         {
           return true;
@@ -102,7 +103,7 @@ public class Stack : MonoBehaviour
       else
       {
         Debug.Log("Current stack lost unit");
-        units.Remove(curStackUnit);
+        units.DelMin();// Remove(curStackUnit);
         if (units.Count == 0)
         {
           return false;

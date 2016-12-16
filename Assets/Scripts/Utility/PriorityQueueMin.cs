@@ -38,7 +38,7 @@ namespace Assets.Scripts.Utility
     #endregion
     public bool IsEmpty() { return Count == 0; }
 
-    public void insert(T x)
+    public void Insert(T x)
     {
       // double size of array if necessary
       if (Count == priorityHeap.Length - 1) resize(2 * priorityHeap.Length);
@@ -52,7 +52,7 @@ namespace Assets.Scripts.Utility
     {
       foreach (T ele in list)
       {
-        insert(ele);
+        Insert(ele);
       }
     }
 
@@ -148,7 +148,7 @@ namespace Assets.Scripts.Utility
       PriorityQueueMin<T> copy = new PriorityQueueMin<T>();
       for (int i = 0; i < Count; i++)
       {
-        copy.insert(priorityHeap[i + 1]);
+        copy.Insert(priorityHeap[i + 1]);
       }
       while (!copy.IsEmpty())
       {

@@ -3,26 +3,36 @@ using System.Collections;
 using System;
 using Assets.Scripts.Pathfinding;
 using System.Collections.Generic;
+using Assets.Scripts.Units;
 
 public class GameController : MonoBehaviour
 {
+  // Related GameObjects
+  public Camera main;
+
   // TODO move to class that deals with constants
   public static int DiceRange = 20;
 
-
-  public Camera main;
-
+  private static int size = 20;
   private GameObject selectedUnit;
-
-  //private TerrainTile.TerrainType[,] terrainLayout;
-
   private TerrainTile[,] terrainTiles;
-
   private List<Stack> allStacks = new List<Stack>();
+  private List<Castle> allCastles = new List<Castle>();
 
+  public List<UnitType> UnitTypes = new List<UnitType>();
   // Use this for initialization
   void Start()
   {
+    /********************************************
+     * TEMP code for testing
+     ********************************************/
+    // Unit Types
+    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1);
+    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2);
+    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3);
+    UnitTypes.Add(heavyInf);
+    UnitTypes.Add(cavalry);
+    UnitTypes.Add(dragon);
     // temp initilization
     Player interactor = new Player();
     interactor.Name = "Karath";
@@ -32,7 +42,7 @@ public class GameController : MonoBehaviour
 
     #region TempTerrain
     // temp manual terrain 
-    terrainTiles = new TerrainTile[20, 20];
+    terrainTiles = new TerrainTile[size, size];
     // Fill with grass
     for (int i = 0; i < terrainTiles.GetLength(0); i++)
     {
@@ -141,37 +151,32 @@ public class GameController : MonoBehaviour
     // temp set owner
     Stack playerStack = GameObject.Find("PlayerStack").GetComponent<Stack>();
     playerStack.Owner = interactor;
-    Unit playerUnit = new Unit(3, 3);
-    playerUnit.Speed = 8;
-    Unit playerUnit2 = new Unit(3, 3);
-    playerUnit2.Speed = 8;
-    Unit playerUnit3 = new Unit(11, 3);
-    playerUnit3.Speed = 8;
-    playerStack.Units.Add(playerUnit);
-    playerStack.Units.Add(playerUnit2);
-    playerStack.Units.Add(playerUnit3);
+    Unit playerUnit = new Unit(heavyInf);
+    Unit playerUnit2 = new Unit(heavyInf);
+    Unit playerUnit3 = new Unit(dragon);
+    playerStack.Units.Insert(playerUnit);
+    playerStack.Units.Insert(playerUnit2);
+    playerStack.Units.Insert(playerUnit3);
 
     allStacks.Add(playerStack);
 
     Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
     enemyStack.Owner = enemy;
-    Unit enemyUnit = new Unit(3, 3);
-    enemyUnit.Speed = 8;
-    enemyStack.Units.Add(enemyUnit);
+    Unit enemyUnit = new Unit(heavyInf);
+    enemyStack.Units.Insert(enemyUnit);
 
     allStacks.Add(enemyStack);
 
     Stack enemyStack2 = GameObject.Find("EnemyStack2").GetComponent<Stack>();
     enemyStack2.Owner = enemy;
-    Unit enemyUnit2 = new Unit(3, 3);
-    enemyUnit2.Speed = 8;
-    enemyStack2.Units.Add(enemyUnit2);
+    Unit enemyUnit2 = new Unit(heavyInf);
+    enemyStack2.Units.Insert(enemyUnit2);
 
     allStacks.Add(enemyStack2);
 
-    Castle cas = GameObject.Find("Castle").GetComponent<Castle>();
-    cas.Owner = enemy;
-
+    //Castle cas = GameObject.Find("Castle").GetComponent<Castle>();
+    //cas.Owner = enemy;
+    //allCastles.Add(cas);
   }
 
   // Update is called once per frame
@@ -179,8 +184,12 @@ public class GameController : MonoBehaviour
   {
     if (Input.GetMouseButtonDown(0))
     {
-
-      RaycastHit2D hit = Physics2D.Raycast(main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+      // Position of mouse pointer
+      Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
+      pos.x = Mathf.Round(pos.x);
+      pos.y = Mathf.Round(pos.y);
+      pos.z = 0;
+      RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero);
       if (hit)
       {
         selectedUnit = hit.collider.gameObject;
@@ -205,7 +214,7 @@ public class GameController : MonoBehaviour
         bool setMove = true;
         // hit all objects, incase of castle beneath stack
         // TODO handle multiple stacked stacks
-        RaycastHit2D[] hits = Physics2D.RaycastAll(main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+        RaycastHit2D[] hits = Physics2D.RaycastAll(pos, Vector2.zero);
         foreach (RaycastHit2D h in hits)
         {
           // check hit componenent
@@ -242,7 +251,6 @@ public class GameController : MonoBehaviour
           }
           else if (hitStack != null && curStack != null && curStack != hitStack)
           {
-            //setMove = false;
             // Check distance, if next to target, do battle
             if (Vector3.Distance(hitStack.transform.position, curStack.transform.position) < 2f)
             {
@@ -260,8 +268,11 @@ public class GameController : MonoBehaviour
 
         if (setMove)
         {
+          // Set blocked paths depending on the castles and stacks
+          bool[,] obstructed = generateObstructedFields(curStack,allStacks, allCastles);
+
           // Set stack movement path
-          curStack.Path = AStar.ShortestPath(terrainTiles, (int)selectedUnit.transform.position.x,
+          curStack.Path = AStar.ShortestPath(terrainTiles, obstructed, (int)selectedUnit.transform.position.x,
             (int)selectedUnit.transform.position.y, (int)pos.x, (int)pos.y);
         }
       }
@@ -275,6 +286,37 @@ public class GameController : MonoBehaviour
         st.SetStackStartMovement();
       }
     }
+  }
+
+  private bool[,] generateObstructedFields(Stack curStack, List<Stack> allStacks, List<Castle> allCastles)
+  {
+    bool[,] obstructed = new bool[size, size];
+    foreach(Stack st in allStacks)
+    {
+      if(st.Owner != curStack.Owner)
+      {
+        obstructed[(int)st.transform.position.x, (int)st.transform.position.y] = true;
+      }
+    }
+    foreach(Castle cas in allCastles)
+    {
+      if(cas.Owner != curStack.Owner)
+      {
+        //Debug.Log("Castle position: " + cas.transform.position.x + "," + cas.transform.position.y);
+        //Debug.Log("Castle squares:");
+        float casPosX = cas.transform.position.x;
+        float casPosY = cas.transform.position.y;
+        //Debug.Log("" + Mathf.FloorToInt(casPosX) + "," + Mathf.FloorToInt(casPosY));
+        //Debug.Log("" + Mathf.CeilToInt(casPosX) + "," + Mathf.FloorToInt(casPosY));
+        //Debug.Log("" + Mathf.FloorToInt(casPosX) + "," + Mathf.CeilToInt(casPosY));
+        //Debug.Log("" + Mathf.CeilToInt(casPosX) + "," + Mathf.CeilToInt(casPosY));
+        obstructed[Mathf.FloorToInt(casPosX), Mathf.FloorToInt(casPosY)] = true;
+        obstructed[Mathf.FloorToInt(casPosX), Mathf.CeilToInt(casPosY)] = true;
+        obstructed[Mathf.CeilToInt(casPosX), Mathf.FloorToInt(casPosY)] = true;
+        obstructed[Mathf.CeilToInt(casPosX), Mathf.CeilToInt(casPosY)] = true;
+      }
+    }
+    return obstructed;
   }
 
   private bool checkMovementPossible(Stack curStack, TerrainTile tile)
@@ -346,7 +388,26 @@ public class GameController : MonoBehaviour
           default:
             break;
         }
-        Instantiate(Resources.Load("Prefabs/" + terrainType, typeof(GameObject)), new Vector3(i, j), Quaternion.identity);
+        if (terrainType == "CastlePlaceholder")
+        {
+          bool toClose = false;
+          foreach (Castle cas in allCastles)
+          {
+            if(Vector3.Distance( cas.transform.position,new Vector3(i,j)) < 2)
+            {
+              toClose = true;
+            }
+          }
+          if (!toClose)
+          {
+            GameObject obj = Instantiate(Resources.Load("Prefabs/Castle", typeof(GameObject)), new Vector3(i + 0.5f, j + 0.5f), Quaternion.identity) as GameObject;
+            allCastles.Add(obj.GetComponent<Castle>());
+          }
+        } else
+        {
+          Instantiate(Resources.Load("Prefabs/" + terrainType, typeof(GameObject)), new Vector3(i, j), Quaternion.identity);
+        }
+        
       }
     }
   }
