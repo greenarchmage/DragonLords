@@ -10,13 +10,16 @@ public class Unit : IComparable<Unit> {
   public int Strength { get; set; }
   public int Hits { get; set; }
   public int Speed { get; set; }
+  public string SpriteName { get; set; }
   public Unit() { }
-  public Unit(int strength, int hits, int speed, int order)
+  public Unit(string name, int strength, int hits, int speed, int order, string sprite)
   {
+    Name = name;
     Strength = strength;
     Hits = hits;
     Order = order;
     Speed = speed;
+    SpriteName = sprite;
   }
 
   public Unit(UnitType type)
@@ -26,6 +29,7 @@ public class Unit : IComparable<Unit> {
     Hits = type.Hits;
     Speed = type.Speed;
     Strength = type.Strength;
+    SpriteName = type.SpriteName;
   }
 
   public int CompareTo(Unit other)

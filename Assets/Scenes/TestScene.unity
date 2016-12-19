@@ -419,6 +419,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   main: {fileID: 776888203}
+  mainUI: {fileID: 854452859}
 --- !u!4 &520215094
 Transform:
   m_ObjectHideFlags: 0

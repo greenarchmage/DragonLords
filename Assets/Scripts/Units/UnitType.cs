@@ -12,13 +12,15 @@ namespace Assets.Scripts.Units
     public int Hits { get; set; }
     public int Speed { get; set; }
     public int Order { get; set; }
-    public UnitType(string name, int str, int hit, int spe, int ord)
+    public string SpriteName { get; set; }
+    public UnitType(string name, int str, int hit, int spe, int ord, string sprit)
     {
       Name = name;
       Strength = str;
       Hits = hit;
       Speed = spe;
       Order = ord;
+      SpriteName = sprit;
     }
   }
 }

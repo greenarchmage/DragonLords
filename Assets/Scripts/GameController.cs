@@ -10,6 +10,7 @@ public class GameController : MonoBehaviour
   // Related GameObjects
   public Camera main;
 
+  public GameObject mainUI;
   // TODO move to class that deals with constants
   public static int DiceRange = 20;
 
@@ -27,9 +28,9 @@ public class GameController : MonoBehaviour
      * TEMP code for testing
      ********************************************/
     // Unit Types
-    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1);
-    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2);
-    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3);
+    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1,"HeavyInfantry");
+    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2, "Cavalry");
+    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3, "Dragon");
     UnitTypes.Add(heavyInf);
     UnitTypes.Add(cavalry);
     UnitTypes.Add(dragon);
@@ -193,6 +194,12 @@ public class GameController : MonoBehaviour
       if (hit)
       {
         selectedUnit = hit.collider.gameObject;
+        Stack curStack = selectedUnit.GetComponent<Stack>();
+        if (curStack != null)
+        {
+          mainUI.GetComponent<MainUI>().ClearSelectedStack();
+          mainUI.GetComponent<MainUI>().SetSelectedStack(curStack);
+        }
         Debug.Log(hit.collider.transform.name);
       }
     }
