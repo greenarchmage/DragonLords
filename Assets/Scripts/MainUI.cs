@@ -22,8 +22,6 @@ public class MainUI : MonoBehaviour {
     int i = 0;
     foreach(Unit u in st.Units)
     {
-      Debug.Log("UnitSprites/" + u.SpriteName);
-      Debug.Log(Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite);
       stackPanel.GetChild(i).GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite;
       i++;
     }

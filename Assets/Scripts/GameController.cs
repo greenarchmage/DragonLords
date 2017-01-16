@@ -21,6 +21,15 @@ public class GameController : MonoBehaviour
   private List<Castle> allCastles = new List<Castle>();
 
   public List<UnitType> UnitTypes = new List<UnitType>();
+
+  //Camera
+  private float minX;
+  private float maxX;
+  private float minY;
+  private float maxY;
+
+  private float panSpeed = 0.10f;
+
   // Use this for initialization
   void Start()
   {
@@ -155,34 +164,61 @@ public class GameController : MonoBehaviour
     Unit playerUnit = new Unit(heavyInf);
     Unit playerUnit2 = new Unit(heavyInf);
     Unit playerUnit3 = new Unit(dragon);
-    playerStack.Units.Insert(playerUnit);
-    playerStack.Units.Insert(playerUnit2);
-    playerStack.Units.Insert(playerUnit3);
+    playerStack.AddUnit(playerUnit);
+    playerStack.AddUnit(playerUnit2);
+    playerStack.AddUnit(playerUnit3);
 
     allStacks.Add(playerStack);
 
     Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
     enemyStack.Owner = enemy;
     Unit enemyUnit = new Unit(heavyInf);
-    enemyStack.Units.Insert(enemyUnit);
+    enemyStack.AddUnit(enemyUnit);
 
     allStacks.Add(enemyStack);
 
     Stack enemyStack2 = GameObject.Find("EnemyStack2").GetComponent<Stack>();
     enemyStack2.Owner = enemy;
     Unit enemyUnit2 = new Unit(heavyInf);
-    enemyStack2.Units.Insert(enemyUnit2);
+    enemyStack2.AddUnit(enemyUnit2);
 
     allStacks.Add(enemyStack2);
 
-    //Castle cas = GameObject.Find("Castle").GetComponent<Castle>();
-    //cas.Owner = enemy;
-    //allCastles.Add(cas);
+    // camera init vals
+    // limit the camera based on the map size
+    float vertExtent = main.orthographicSize;
+    float horzExtent = vertExtent * Screen.width / Screen.height;
+
+    // Size taken from bottom panel
+    float uiPadding = 2*main.orthographicSize *(mainUI.GetComponent<RectTransform>().rect.height / Screen.height);
+    // off set is calculated based on the size of the map
+    float offset = size/2f -0.5f;
+    minX = horzExtent - ((float)size) / 2.0f + offset;
+    maxX = ((float)size) / 2.0f - horzExtent+ offset;
+    minY = vertExtent - ((float)size) / 2.0f + offset- uiPadding;
+    maxY = ((float)size) / 2.0f - vertExtent + offset;
   }
 
   // Update is called once per frame
   void Update()
   {
+    // Camera panning
+    if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.LeftArrow))
+    { main.transform.Translate(Vector3.left* panSpeed); }
+    if (Input.GetKey(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.RightArrow))
+    { main.transform.Translate(Vector3.right * panSpeed); }
+    if (Input.GetKey(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.UpArrow))
+    { main.transform.Translate(Vector3.up * panSpeed); }
+    if (Input.GetKey(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.DownArrow))
+    { main.transform.Translate(Vector3.down * panSpeed); }
+
+    // limit camera
+    Vector3 v3 = main.transform.position;
+    v3.x = Mathf.Clamp(v3.x, minX, maxX);
+    v3.y = Mathf.Clamp(v3.y, minY, maxY);
+    main.transform.position = v3;
+    
+    // Mouse pointer section
     if (Input.GetMouseButtonDown(0))
     {
       // Position of mouse pointer
@@ -255,6 +291,7 @@ public class GameController : MonoBehaviour
             {
               cas.Owner = curStack.Owner;
             }
+            break;
           }
           else if (hitStack != null && curStack != null && curStack != hitStack)
           {
@@ -335,6 +372,7 @@ public class GameController : MonoBehaviour
   {
     allStacks.Remove(stack);
     Destroy(stack.gameObject);
+    stack = null;
   }
 
   private void tempBuildCastle(TerrainTile[,] terrainLayout, int xcoord, int ycoord)
