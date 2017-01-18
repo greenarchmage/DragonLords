@@ -9,6 +9,7 @@ public class GameController : MonoBehaviour
 {
   // Related GameObjects
   public Camera main;
+  public GameObject CastleMenuUI;
 
   public GameObject mainUI;
   // TODO move to class that deals with constants
@@ -217,9 +218,13 @@ public class GameController : MonoBehaviour
     v3.x = Mathf.Clamp(v3.x, minX, maxX);
     v3.y = Mathf.Clamp(v3.y, minY, maxY);
     main.transform.position = v3;
-    
+
+    /**************************
+     * Right click mouse actions
+     **************************/
+
     // Mouse pointer section
-    if (Input.GetMouseButtonDown(0))
+    if (Input.GetMouseButtonDown(0) && selectedUnit == null && !CastleMenuUI.activeSelf)
     {
       // Position of mouse pointer
       Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
@@ -241,7 +246,7 @@ public class GameController : MonoBehaviour
     }
 
     // Handle stack interactions
-    if (Input.GetMouseButtonDown(1) && selectedUnit != null)
+    if (Input.GetMouseButtonDown(0) && selectedUnit != null && !CastleMenuUI.activeSelf)
     {
       // Position of mouse pointer
       Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
@@ -286,6 +291,7 @@ public class GameController : MonoBehaviour
             if (!win)
             {
               killStack(curStack);
+              selectedUnit = null;
             }
             else
             {
@@ -305,6 +311,7 @@ public class GameController : MonoBehaviour
               else
               {
                 killStack(curStack);
+                selectedUnit = null;
               }
             }
           }
@@ -322,6 +329,29 @@ public class GameController : MonoBehaviour
       }
     }
 
+
+    /**************************
+     * Left click mouse actions
+     **************************/
+    if (Input.GetMouseButtonDown(1))
+    {
+      // TODO fix for better handling of right click
+      Vector3 pos = main.ScreenToWorldPoint(Input.mousePosition);
+      pos.x = Mathf.Round(pos.x);
+      pos.y = Mathf.Round(pos.y);
+      pos.z = 0;
+      RaycastHit2D[] hits = Physics2D.RaycastAll(pos, Vector2.zero);
+      foreach(RaycastHit2D hit in hits)
+      {
+        Castle hitCas = hit.transform.gameObject.GetComponent<Castle>();
+        if (hitCas != null)
+        {
+          CastleMenuUI.SetActive(true);
+          CastleMenuUI.GetComponent<CastleMenu>().SetCastle(hitCas);
+        }
+      }
+    }
+
     // Next turn. Set all stacks movement. Should be called from else where
     if (Input.GetKeyDown(KeyCode.Space))
     {
@@ -329,6 +359,12 @@ public class GameController : MonoBehaviour
       {
         st.SetStackStartMovement();
       }
+    }
+
+    // Deselect all
+    if (Input.GetKeyDown(KeyCode.Return))
+    {
+      selectedUnit = null;
     }
   }
 
