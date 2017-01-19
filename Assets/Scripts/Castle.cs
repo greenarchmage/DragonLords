@@ -1,18 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.Utility;
 
 public class Castle : MonoBehaviour {
 
   public Unit CurrentProduction { get; set; }
   public Player Owner { get; set; }
   
-  public List<Unit> ProductionUnits { get; set; }
+  public PriorityQueueMin<Unit> ProductionUnits { get; set; }
   public List<Stack> Garrison { get; set; }
 	// Use this for initialization
 	void Start () {
     Garrison = new List<Stack>();
-    ProductionUnits = new List<Unit>();
+    ProductionUnits = new PriorityQueueMin<Unit>();
 	}
 	
 	// Update is called once per frame

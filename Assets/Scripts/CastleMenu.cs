@@ -23,7 +23,18 @@ public class CastleMenu : MonoBehaviour {
 
   public void SetCastleProduction(int pos)
   {
-    transform.Find("ProductionUnit").GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + castle.ProductionUnits[pos].SpriteName, typeof(Sprite)) as Sprite;
+    if(castle.ProductionUnits.Count > pos)
+    {
+      int i = 0;
+      foreach(Unit u in castle.ProductionUnits)
+      {
+        if(i == pos)
+        {
+          transform.Find("ProductionUnit").GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite;
+        }
+        i++;
+      }
+    }
   }
 
   public void SetCastle(Castle activeCas)
@@ -39,9 +50,25 @@ public class CastleMenu : MonoBehaviour {
       unitUI.sprite = Resources.Load("UnitSprites/" + "EmptyUIPlaceholder", typeof(Sprite)) as Sprite;
     }
     Transform prodSel = transform.Find("ProductionSelection");
-    for (int i = 0; i<castle.ProductionUnits.Count; i++)
+    int i = 0;
+    foreach(Unit u in castle.ProductionUnits)
     {
-      prodSel.GetChild(i).GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + castle.ProductionUnits[i].SpriteName, typeof(Sprite)) as Sprite; 
+      if(i == castle.ProductionUnits.Count)
+      {
+        break;
+      }
+      prodSel.GetChild(i).GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite;
+      i++;
     }
+  }
+
+  public void OpenBuyProductionMenu()
+  {
+    transform.Find("BuyProductionPanel").gameObject.SetActive(true);
+  }
+
+  public void BuyProduction()
+  {
+    transform.Find("BuyProductionPanel").gameObject.SetActive(false);
   }
 }
