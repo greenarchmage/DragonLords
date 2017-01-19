@@ -239,6 +239,7 @@ public class GameController : MonoBehaviour
             {
               if (curStack.Battle(st))
               {
+                Debug.Log("Kill hit stack");
                 killStack(st);
               }
               else
@@ -249,6 +250,7 @@ public class GameController : MonoBehaviour
             }
             if (!win)
             {
+              Debug.Log("Kill cur stack");
               killStack(curStack);
             }
             else
