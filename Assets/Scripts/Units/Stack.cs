@@ -8,7 +8,9 @@ public class Stack : MonoBehaviour
 {
   public Player Owner { get; set; }
   public int StackSize { get; set; }
-  //public List<Unit> Units { get { return units; } set { units = value; } }
+  /// <summary>
+  /// Should not be used to insert units
+  /// </summary>
   public PriorityQueueMin<Unit> Units { get { return units; } set { units = value; } }
   public int Movement { get; set; }
 
@@ -48,7 +50,24 @@ public class Stack : MonoBehaviour
     }
   }
 
-
+  /// <summary>
+  /// Should be used to insert all units, to ensure the sprite is changed
+  /// </summary>
+  /// <param name="unit"></param>
+  public void AddUnit(Unit unit)
+  {
+    // Set stack appearance
+    units.Insert(unit);
+    Unit heighestOrder = unit;
+    foreach(Unit u in units)
+    {
+      if(u.Order > heighestOrder.Order)
+      {
+        heighestOrder = u;
+      }
+    }
+    gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load("UnitSprites/" + heighestOrder.SpriteName, typeof(Sprite)) as Sprite;
+  }
   public void SetStackStartMovement()
   {
     Movement = int.MaxValue;
