@@ -47,9 +47,12 @@ public class GameController : MonoBehaviour
     // temp initilization
     Player interactor = new Player();
     interactor.Name = "Karath";
+    // TODO should perhaps be unitTypes???
+    interactor.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<Unit>(new Unit[] { new Unit(heavyInf), new Unit(cavalry), new Unit(dragon) });
 
     Player enemy = new Player();
     enemy.Name = "Algast";
+    enemy.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<Unit>(new Unit[] { new Unit(heavyInf), new Unit(cavalry) });
 
     #region TempTerrain
     // temp manual terrain 
@@ -346,7 +349,7 @@ public class GameController : MonoBehaviour
       foreach(RaycastHit2D hit in hits)
       {
         Castle hitCas = hit.transform.gameObject.GetComponent<Castle>();
-        if (hitCas != null)
+        if (hitCas != null && hitCas.Owner != null)
         {
           CastleMenuUI.SetActive(true);
           CastleMenuUI.GetComponent<CastleMenu>().SetCastle(hitCas);

@@ -64,11 +64,15 @@ public class CastleMenu : MonoBehaviour {
 
   public void OpenBuyProductionMenu()
   {
+    GameObject buyProductionPanel = transform.Find("BuyProductionPanel").gameObject;
+    buyProductionPanel.GetComponent<BuyProductionPanel>().SetUnits(castle.Owner.PlayerUnits);
     transform.Find("BuyProductionPanel").gameObject.SetActive(true);
   }
 
   public void BuyProduction()
   {
+    // get the selected unit from the panel, subtract its value from the player gold, add it to the castle buy queue
+
     transform.Find("BuyProductionPanel").gameObject.SetActive(false);
   }
 }
