@@ -30,12 +30,29 @@ public class BuyProductionPanel : MonoBehaviour {
       AvailableUnits.Add(unit);
       unitPlace++;
     }
+    for(int i= unitPlace; i < 4; i++)
+    {
+      unitPanel.GetChild(i).GetComponent<Button>().interactable = false;
+    }
   }
 
+  /// <summary>
+  /// GUI function. Sets the unit to be purchased
+  /// </summary>
+  /// <param name="unitPlace">spot in Unit browser</param>
   public void SelectUnit(int unitPlace)
   {
     Unit selectUnit = AvailableUnits[unitPlace];
-    transform.Find("UnitForPurchase").GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + selectUnit.SpriteName, typeof(Sprite)) as Sprite;
+    Transform unitPurTrans = transform.Find("UnitForPurchase");
+    unitPurTrans.GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + selectUnit.SpriteName, typeof(Sprite)) as Sprite;
     unitToBuy = selectUnit;
+
+    // TODO set fields rather than entire text field
+    // TODO set from unitType
+    unitPurTrans.Find("UnitPurchaseStats").GetComponent<Text>().text = @"Price:
+Name: " + selectUnit.Name + @"
+Strength: " + selectUnit.Strength + @"
+Hits: " + selectUnit.Hits + @"
+Move:" + selectUnit.Speed;
   }
 }
