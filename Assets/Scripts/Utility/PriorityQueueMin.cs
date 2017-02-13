@@ -160,5 +160,10 @@ namespace Assets.Scripts.Utility
     {
       return GetEnumerator();
     }
+
+    public bool Contains(T val)
+    {
+      return priorityHeap.Contains(val);
+    }
   }
 }

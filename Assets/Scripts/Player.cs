@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Assets.Scripts.Units;
 using Assets.Scripts.Utility;
 
 public class Player
 {
   public string Name { get; set; }
 
-  public PriorityQueueMin<Unit> PlayerUnits { get; set; }// TODO should perhaps be unitTypes???
+  public PriorityQueueMin<UnitType> PlayerUnits { get; set; }
+
+  public int Gold { get; set; }
 }
 

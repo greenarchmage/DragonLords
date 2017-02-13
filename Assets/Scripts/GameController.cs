@@ -38,21 +38,22 @@ public class GameController : MonoBehaviour
      * TEMP code for testing
      ********************************************/
     // Unit Types
-    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1,"HeavyInfantry");
-    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2, "Cavalry");
-    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3, "Dragon");
+    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1,"HeavyInfantry", 80);
+    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2, "Cavalry", 120);
+    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3, "Dragon", 300);
     UnitTypes.Add(heavyInf);
     UnitTypes.Add(cavalry);
     UnitTypes.Add(dragon);
     // temp initilization
     Player interactor = new Player();
     interactor.Name = "Karath";
-    // TODO should perhaps be unitTypes???
-    interactor.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<Unit>(new Unit[] { new Unit(heavyInf), new Unit(cavalry), new Unit(dragon) });
+    interactor.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry, dragon });
+    interactor.Gold = 1000;
 
     Player enemy = new Player();
     enemy.Name = "Algast";
-    enemy.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<Unit>(new Unit[] { new Unit(heavyInf), new Unit(cavalry) });
+    enemy.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry });
+    enemy.Gold = 100;
 
     #region TempTerrain
     // temp manual terrain 

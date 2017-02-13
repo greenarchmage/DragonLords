@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using Assets.Scripts.Units;
+using Assets.Scripts.Utility;
 
 public class MainUI : MonoBehaviour {
   
@@ -30,8 +32,7 @@ public class MainUI : MonoBehaviour {
   public void ClearSelectedStack()
   {
     Transform stackPanel = transform.FindChild("StackUnits");
-    // TODO make number in stack generic
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < Constants.StackSize; i++)
     {
       stackPanel.GetChild(i).GetComponent<Image>().sprite = null;
     }

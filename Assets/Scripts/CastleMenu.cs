@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using Assets.Scripts.Units;
+using Assets.Scripts.Utility;
 
 public class CastleMenu : MonoBehaviour {
 
-  private Castle castle;
+  public Castle Castle
+  { get; set; }
 
 	// Use this for initialization
 	void Start () {
@@ -21,58 +24,83 @@ public class CastleMenu : MonoBehaviour {
     gameObject.SetActive(false);
   }
 
+  public void SetCastleProduction(UnitType type)
+  {
+    if (Castle.ProductionUnits.Contains(type))
+    {
+      transform.Find("ProductionUnit").GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + type.SpriteName, typeof(Sprite)) as Sprite;
+      Castle.CurrentProduction = type;
+      updateProduction();
+    }
+  }
+
+  public void SetCastle(Castle activeCas)
+  {
+    Castle = activeCas;
+    updateProduction();
+  }
+
+  public void OpenBuyProductionMenu()
+  {
+    GameObject buyProductionPanel = transform.Find("BuyProductionPanel").gameObject;
+    buyProductionPanel.GetComponent<BuyProductionPanel>().SetUnits(Castle.Owner.PlayerUnits);
+    transform.Find("BuyProductionPanel").gameObject.SetActive(true);
+  }
+
+
   public void SetCastleProduction(int pos)
   {
-    if(castle.ProductionUnits.Count > pos)
+    if (Castle.ProductionUnits.Count > pos)
     {
       int i = 0;
-      foreach(Unit u in castle.ProductionUnits)
+      foreach (UnitType u in Castle.ProductionUnits)
       {
-        if(i == pos)
+        if (i == pos)
         {
-          transform.Find("ProductionUnit").GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite;
+          SetCastleProduction(u);
         }
         i++;
       }
     }
   }
 
-  public void SetCastle(Castle activeCas)
+  private void updateProduction()
   {
-    castle = activeCas;
     GameObject prodUnit = transform.Find("ProductionUnit").gameObject;
     Image unitUI = prodUnit.GetComponent<Image>();
-    if (castle.CurrentProduction != null)
+    if (Castle.CurrentProduction != null)
     {
-      unitUI.sprite = Resources.Load("UnitSprites/" + castle.CurrentProduction.SpriteName, typeof(Sprite)) as Sprite;
-    } else
+      UnitType type = Castle.CurrentProduction;
+      unitUI.sprite = Resources.Load("UnitSprites/" + type.SpriteName, typeof(Sprite)) as Sprite;
+      // Set the stats of the unit in the stat panel
+      // TODO set fields rather than entire text field
+      Transform unitStats = transform.Find("UnitPanel");
+      unitStats.Find("UnitStats").GetComponent<Text>().text = @"Name: " + type.Name + @"
+Strength: " + type.Strength + @"
+Hits: " + type.Hits + @"
+Move:" + type.Speed;
+    }
+    else
     {
       unitUI.sprite = Resources.Load("UnitSprites/" + "EmptyUIPlaceholder", typeof(Sprite)) as Sprite;
     }
+
     Transform prodSel = transform.Find("ProductionSelection");
     int i = 0;
-    foreach(Unit u in castle.ProductionUnits)
+    foreach (UnitType u in Castle.ProductionUnits)
     {
-      if(i == castle.ProductionUnits.Count)
+      if (i == Castle.ProductionUnits.Count)
       {
         break;
       }
       prodSel.GetChild(i).GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite;
+      prodSel.GetChild(i).GetComponent<Button>().enabled = true;
       i++;
     }
-  }
-
-  public void OpenBuyProductionMenu()
-  {
-    GameObject buyProductionPanel = transform.Find("BuyProductionPanel").gameObject;
-    buyProductionPanel.GetComponent<BuyProductionPanel>().SetUnits(castle.Owner.PlayerUnits);
-    transform.Find("BuyProductionPanel").gameObject.SetActive(true);
-  }
-
-  public void BuyProduction()
-  {
-    // get the selected unit from the panel, subtract its value from the player gold, add it to the castle buy queue
-
-    transform.Find("BuyProductionPanel").gameObject.SetActive(false);
+    for(int j = i; j< Constants.ProductionSize; j++)
+    {
+      prodSel.GetChild(j).GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + "EmptyUIPlaceholder", typeof(Sprite)) as Sprite;
+      prodSel.GetChild(j).GetComponent<Button>().enabled = false;
+    }
   }
 }

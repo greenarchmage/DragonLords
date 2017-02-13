@@ -1017,7 +1017,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1882726453}
+      - m_Target: {fileID: 194189833}
         m_MethodName: BuyProduction
         m_Mode: 1
         m_Arguments:
@@ -2730,7 +2730,7 @@ GameObject:
   - component: {fileID: 1500349869}
   - component: {fileID: 1500349868}
   m_Layer: 5
-  m_Name: Unit Stats
+  m_Name: UnitStats
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

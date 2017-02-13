@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.Units;
 using Assets.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,8 +8,8 @@ using UnityEngine.UI;
 public class BuyProductionPanel : MonoBehaviour {
 
 
-  private List<Unit> AvailableUnits = new List<Unit>();
-  private Unit unitToBuy;
+  private List<UnitType> AvailableUnitTypes = new List<UnitType>();
+  private UnitType unitTypeToBuy;
 
 	// Use this for initialization
 	void Start () {
@@ -20,14 +21,14 @@ public class BuyProductionPanel : MonoBehaviour {
 		
 	}
 
-  public void SetUnits(PriorityQueueMin<Unit> playerUnits)
+  public void SetUnits(PriorityQueueMin<UnitType> playerUnits)
   {
     Transform unitPanel = transform.Find("UnitPurchasePanel");
     int unitPlace = 0;
-    foreach (Unit unit in playerUnits)
+    foreach (UnitType unit in playerUnits)
     {
       unitPanel.GetChild(unitPlace).GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + unit.SpriteName, typeof(Sprite)) as Sprite;
-      AvailableUnits.Add(unit);
+      AvailableUnitTypes.Add(unit);
       unitPlace++;
     }
     for(int i= unitPlace; i < 4; i++)
@@ -37,22 +38,38 @@ public class BuyProductionPanel : MonoBehaviour {
   }
 
   /// <summary>
-  /// GUI function. Sets the unit to be purchased
+  /// GUI function. Sets the unitType to be purchased
   /// </summary>
   /// <param name="unitPlace">spot in Unit browser</param>
   public void SelectUnit(int unitPlace)
   {
-    Unit selectUnit = AvailableUnits[unitPlace];
+    UnitType selectUnitType = AvailableUnitTypes[unitPlace];
     Transform unitPurTrans = transform.Find("UnitForPurchase");
-    unitPurTrans.GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + selectUnit.SpriteName, typeof(Sprite)) as Sprite;
-    unitToBuy = selectUnit;
+    unitPurTrans.GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + selectUnitType.SpriteName, typeof(Sprite)) as Sprite;
+    unitTypeToBuy = selectUnitType;
 
     // TODO set fields rather than entire text field
-    // TODO set from unitType
-    unitPurTrans.Find("UnitPurchaseStats").GetComponent<Text>().text = @"Price:
-Name: " + selectUnit.Name + @"
-Strength: " + selectUnit.Strength + @"
-Hits: " + selectUnit.Hits + @"
-Move:" + selectUnit.Speed;
+    unitPurTrans.Find("UnitPurchaseStats").GetComponent<Text>().text = @"Price: " + selectUnitType.Price + @"
+Name: " + selectUnitType.Name + @"
+Strength: " + selectUnitType.Strength + @"
+Hits: " + selectUnitType.Hits + @"
+Move:" + selectUnitType.Speed;
   }
+
+  public void BuyProduction()
+  {
+    // get the player, check if there is enough gold, if true, set the production in the castle menu
+    CastleMenu casMen = transform.parent.GetComponent<CastleMenu>();
+    if(casMen.Castle.Owner.Gold >= unitTypeToBuy.Price)
+    {
+      casMen.Castle.ProductionUnits.Insert(unitTypeToBuy);
+      casMen.Castle.Owner.Gold -= unitTypeToBuy.Price;
+      casMen.SetCastleProduction(unitTypeToBuy);
+      gameObject.SetActive(false);
+    } else
+    {
+      // TODO handle not enough money
+    }
+  }
+
 }

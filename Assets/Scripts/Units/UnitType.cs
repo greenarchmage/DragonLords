@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Assets.Scripts.Units
 {
-  public class UnitType
+  public class UnitType : IComparable<UnitType>
   {
     public string Name { get; set; }
     public int Strength { get; set; }
@@ -13,7 +13,8 @@ namespace Assets.Scripts.Units
     public int Speed { get; set; }
     public int Order { get; set; }
     public string SpriteName { get; set; }
-    public UnitType(string name, int str, int hit, int spe, int ord, string sprit)
+    public int Price { get; set; }
+    public UnitType(string name, int str, int hit, int spe, int ord, string sprit, int price)
     {
       Name = name;
       Strength = str;
@@ -21,6 +22,12 @@ namespace Assets.Scripts.Units
       Speed = spe;
       Order = ord;
       SpriteName = sprit;
+      Price = price;
+    }
+
+    public int CompareTo(UnitType other)
+    {
+      return Order - other.Order;
     }
   }
 }
