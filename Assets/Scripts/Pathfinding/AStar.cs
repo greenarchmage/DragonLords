@@ -93,18 +93,6 @@ namespace Assets.Scripts.Pathfinding
       else return (this.total() < other.total() ? -1 : 1);
     }
 
-    //public List<Node> generateNeighbours(bool[,] passable, int[,] distanceMatrix, int goalX, int goalY)
-    //{
-    //  List<Node> list = new List<Node>();
-    //  createAndAdd(x + 1, y, goalX, goalY, passable, distanceMatrix, list);
-    //  createAndAdd(x + 1, y+1, goalX, goalY, passable, distanceMatrix, list);
-    //  createAndAdd(x - 1, y, goalX, goalY, passable, distanceMatrix, list);
-    //  createAndAdd(x - 1, y -1, goalX, goalY, passable, distanceMatrix, list);
-    //  createAndAdd(x, y + 1, goalX, goalY, passable, distanceMatrix, list);
-    //  createAndAdd(x, y - 1, goalX, goalY, passable, distanceMatrix, list);
-    //  return list;
-    //}
-
     public List<Node> generateNeighbours(TerrainTile[,] terrainLayout,bool[,] obstructed, int[,] distanceMatrix, int goalX, int goalY)
     {
       List<Node> list = new List<Node>();
@@ -119,24 +107,6 @@ namespace Assets.Scripts.Pathfinding
 
       return list;
     }
-
-    //private void createAndAdd(int newX, int newY, int goalX, int goalY, bool[,] passable,
-    //                            int[,] distanceMatrix, List<Node> list)
-    //{
-    //  if (AStar.exists(newX, newY, passable) && passable[newX, newY])
-    //  {
-    //    int newCost = this.costToGetHere + 1;
-    //    int newEstimate = AStar.ManhattanDistance(newX, newY, goalX, goalY);
-    //    Node newNode = new Node(newX, newY, newCost, newEstimate);
-    //    if (distanceMatrix[newX, newY] < 0 || newCost < distanceMatrix[newX, newY])
-    //    {
-    //      // if (newX == goalX && newY == goalY)
-    //      //     System.out.println("adding goal " + newX + " " + newY + " " + newCost);
-    //      list.Add(newNode);
-    //      distanceMatrix[newX, newY] = newCost;
-    //    }
-    //  }
-    //}
 
     private void createAndAdd(int newX, int newY, int goalX, int goalY, TerrainTile[,] terrainLayout,
                                 bool[,] obstructed, int[,] distanceMatrix, List<Node> list)
@@ -168,7 +138,6 @@ namespace Assets.Scripts.Pathfinding
                 passableTerrain = false;
               }
               break;
-            // TODO move terrain cost to a fixed file or class
             case TerrainTile.MoveType.Transition:
               if (Type == TerrainTile.MoveType.Transition || Type == TerrainTile.MoveType.WaterPassable || Type == TerrainTile.MoveType.Normal)
               {

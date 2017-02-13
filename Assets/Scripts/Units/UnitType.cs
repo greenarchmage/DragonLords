@@ -14,7 +14,8 @@ namespace Assets.Scripts.Units
     public int Order { get; set; }
     public string SpriteName { get; set; }
     public int Price { get; set; }
-    public UnitType(string name, int str, int hit, int spe, int ord, string sprit, int price)
+    public int ProdutionTurns { get; set; }
+    public UnitType(string name, int str, int hit, int spe, int ord, string sprit, int price, int turns)
     {
       Name = name;
       Strength = str;
@@ -23,6 +24,7 @@ namespace Assets.Scripts.Units
       Order = ord;
       SpriteName = sprit;
       Price = price;
+      ProdutionTurns = turns;
     }
 
     public int CompareTo(UnitType other)

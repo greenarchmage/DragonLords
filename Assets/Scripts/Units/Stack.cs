@@ -69,13 +69,18 @@ public class Stack : MonoBehaviour
     }
     gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load("UnitSprites/" + heighestOrder.SpriteName, typeof(Sprite)) as Sprite;
   }
-  public void SetStackStartMovement()
+  private void SetStackStartMovement()
   {
     Movement = int.MaxValue;
     foreach (Unit u in units)
     {
       Movement = Movement > u.Speed ? u.Speed : Movement;
     }
+  }
+
+  public void NextTurn()
+  {
+    SetStackStartMovement();
   }
 
   public bool Battle(Stack hitStack)
@@ -86,18 +91,15 @@ public class Stack : MonoBehaviour
     // Select next unit in stack where unit died, if null, the other stack wins
     while (units.Count != 0 && hitStack.Units.Count != 0)
     {
-      //TODO should be done with a priority queue
-      //int curUnitInt = 0;
-      Unit curStackUnit = units.Min();//[curUnitInt];
-      //int hitUnitInt = 0;
-      Unit hitStackUnit = hitStack.Units.Min();//[hitUnitInt];
+      Unit curStackUnit = units.Min();
+      Unit hitStackUnit = hitStack.Units.Min();
 
       //Battle section
       //TODO add special abilities
       while (hitStackUnit.Hits > 0 && curStackUnit.Hits > 0)
       {
-        int hitUnitRoll = Random.Range(0, GameController.DiceRange) + 1 + hitStackUnit.Strength;
-        int curUnitRoll = Random.Range(0, GameController.DiceRange) + 1 + curStackUnit.Strength;
+        int hitUnitRoll = Random.Range(0, Constants.DiceRange) + 1 + hitStackUnit.Strength;
+        int curUnitRoll = Random.Range(0, Constants.DiceRange) + 1 + curStackUnit.Strength;
 
         int fightRes = curUnitRoll - hitUnitRoll;
 

@@ -12,8 +12,6 @@ public class GameController : MonoBehaviour
   public GameObject CastleMenuUI;
 
   public GameObject mainUI;
-  // TODO move to class that deals with constants
-  public static int DiceRange = 20;
 
   private static int size = 20;
   private GameObject selectedUnit;
@@ -31,6 +29,21 @@ public class GameController : MonoBehaviour
 
   private float panSpeed = 0.10f;
 
+  public static GameController Instance;
+
+  public GameObject soundManager;
+  public int score;
+
+  void Awake()
+  {
+    if (Instance != null)
+      GameObject.Destroy(Instance);
+    else
+      Instance = this;
+
+    DontDestroyOnLoad(this);
+  }
+
   // Use this for initialization
   void Start()
   {
@@ -38,9 +51,9 @@ public class GameController : MonoBehaviour
      * TEMP code for testing
      ********************************************/
     // Unit Types
-    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1,"HeavyInfantry", 80);
-    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2, "Cavalry", 120);
-    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3, "Dragon", 300);
+    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1,"HeavyInfantry", 80,1);
+    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2, "Cavalry", 120,2);
+    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3, "Dragon", 300,3);
     UnitTypes.Add(heavyInf);
     UnitTypes.Add(cavalry);
     UnitTypes.Add(dragon);
@@ -358,12 +371,21 @@ public class GameController : MonoBehaviour
       }
     }
 
+    /************************************
+     * Hotkey actions
+     ***********************************/
     // Next turn. Set all stacks movement. Should be called from else where
     if (Input.GetKeyDown(KeyCode.Space))
     {
-      foreach(Stack st in allStacks)
+      //first castles for unit creation
+      foreach (Castle cas in allCastles)
       {
-        st.SetStackStartMovement();
+        cas.NextTurn();
+      }
+
+      foreach (Stack st in allStacks)
+      {
+        st.NextTurn();
       }
     }
 
@@ -388,14 +410,8 @@ public class GameController : MonoBehaviour
     {
       if(cas.Owner != curStack.Owner)
       {
-        //Debug.Log("Castle position: " + cas.transform.position.x + "," + cas.transform.position.y);
-        //Debug.Log("Castle squares:");
         float casPosX = cas.transform.position.x;
         float casPosY = cas.transform.position.y;
-        //Debug.Log("" + Mathf.FloorToInt(casPosX) + "," + Mathf.FloorToInt(casPosY));
-        //Debug.Log("" + Mathf.CeilToInt(casPosX) + "," + Mathf.FloorToInt(casPosY));
-        //Debug.Log("" + Mathf.FloorToInt(casPosX) + "," + Mathf.CeilToInt(casPosY));
-        //Debug.Log("" + Mathf.CeilToInt(casPosX) + "," + Mathf.CeilToInt(casPosY));
         obstructed[Mathf.FloorToInt(casPosX), Mathf.FloorToInt(casPosY)] = true;
         obstructed[Mathf.FloorToInt(casPosX), Mathf.CeilToInt(casPosY)] = true;
         obstructed[Mathf.CeilToInt(casPosX), Mathf.FloorToInt(casPosY)] = true;
@@ -417,6 +433,10 @@ public class GameController : MonoBehaviour
     stack = null;
   }
 
+  public void AddStack(Stack stack)
+  {
+    allStacks.Add(stack);
+  }
   private void tempBuildCastle(TerrainTile[,] terrainLayout, int xcoord, int ycoord)
   {
     for (int i = 0; i < 2; i++)
