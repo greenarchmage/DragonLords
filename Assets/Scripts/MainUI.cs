@@ -5,7 +5,7 @@ using Assets.Scripts.Units;
 using Assets.Scripts.Utility;
 
 public class MainUI : MonoBehaviour {
-  
+
 	// Use this for initialization
 	void Start () {
 	
@@ -18,6 +18,7 @@ public class MainUI : MonoBehaviour {
 
   public void SetSelectedStack(Stack st)
   {
+    ClearSelectedStack();
     Debug.Log(transform.FindChild("StackUnits"));
     // get the stack visualization
     Transform stackPanel = transform.FindChild("StackUnits");
@@ -37,4 +38,5 @@ public class MainUI : MonoBehaviour {
       stackPanel.GetChild(i).GetComponent<Image>().sprite = null;
     }
   }
+  
 }

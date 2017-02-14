@@ -4,6 +4,7 @@ using System;
 using Assets.Scripts.Pathfinding;
 using System.Collections.Generic;
 using Assets.Scripts.Units;
+using Assets.Scripts.Utility;
 
 public class GameController : MonoBehaviour
 {
@@ -13,10 +14,10 @@ public class GameController : MonoBehaviour
 
   public GameObject mainUI;
 
-  private static int size = 20;
+  //private static int size = 20;
   private GameObject selectedUnit;
   private TerrainTile[,] terrainTiles;
-  private List<Stack> allStacks = new List<Stack>();
+  public List<Stack> AllStacks = new List<Stack>();
   private List<Castle> allCastles = new List<Castle>();
 
   public List<UnitType> UnitTypes = new List<UnitType>();
@@ -70,7 +71,7 @@ public class GameController : MonoBehaviour
 
     #region TempTerrain
     // temp manual terrain 
-    terrainTiles = new TerrainTile[size, size];
+    terrainTiles = new TerrainTile[Constants.Size, Constants.Size];
     // Fill with grass
     for (int i = 0; i < terrainTiles.GetLength(0); i++)
     {
@@ -186,21 +187,21 @@ public class GameController : MonoBehaviour
     playerStack.AddUnit(playerUnit2);
     playerStack.AddUnit(playerUnit3);
 
-    allStacks.Add(playerStack);
+    AllStacks.Add(playerStack);
 
     Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
     enemyStack.Owner = enemy;
     Unit enemyUnit = new Unit(heavyInf);
     enemyStack.AddUnit(enemyUnit);
 
-    allStacks.Add(enemyStack);
+    AllStacks.Add(enemyStack);
 
     Stack enemyStack2 = GameObject.Find("EnemyStack2").GetComponent<Stack>();
     enemyStack2.Owner = enemy;
     Unit enemyUnit2 = new Unit(heavyInf);
     enemyStack2.AddUnit(enemyUnit2);
 
-    allStacks.Add(enemyStack2);
+    AllStacks.Add(enemyStack2);
 
     // camera init vals
     // limit the camera based on the map size
@@ -210,11 +211,23 @@ public class GameController : MonoBehaviour
     // Size taken from bottom panel
     float uiPadding = 2*main.orthographicSize *(mainUI.GetComponent<RectTransform>().rect.height / Screen.height);
     // off set is calculated based on the size of the map
-    float offset = size/2f -0.5f;
-    minX = horzExtent - ((float)size) / 2.0f + offset;
-    maxX = ((float)size) / 2.0f - horzExtent+ offset;
-    minY = vertExtent - ((float)size) / 2.0f + offset- uiPadding;
-    maxY = ((float)size) / 2.0f - vertExtent + offset;
+    float offset = Constants.Size/2f -0.5f;
+    minX = horzExtent - ((float)Constants.Size) / 2.0f + offset;
+    maxX = ((float)Constants.Size) / 2.0f - horzExtent + offset;
+    minY = vertExtent - ((float)Constants.Size) / 2.0f + offset- uiPadding;
+    maxY = ((float)Constants.Size) / 2.0f - vertExtent + offset;
+    if(maxX- minX < 0)
+    {
+      float diffX = minX - maxX;
+      maxX += diffX/2;
+      minX -= diffX / 2;
+    }
+    if(maxY - minY < 0)
+    {
+      float diffY = minY - maxY;
+      maxY += diffY / 2;
+      minY -= diffY / 2;
+    }
   }
 
   // Update is called once per frame
@@ -248,17 +261,28 @@ public class GameController : MonoBehaviour
       pos.x = Mathf.Round(pos.x);
       pos.y = Mathf.Round(pos.y);
       pos.z = 0;
-      RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero);
-      if (hit)
+      //RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero);
+      //if (hit)
+      //{
+      //  selectedUnit = hit.collider.gameObject;
+      //  Stack curStack = selectedUnit.GetComponent<Stack>();
+      //  if (curStack != null)
+      //  {
+      //    mainUI.GetComponent<MainUI>().SetSelectedStack(curStack);
+      //  }
+      //  Debug.Log(hit.collider.transform.name);
+      //}
+
+      RaycastHit2D[] hits = Physics2D.RaycastAll(pos, Vector2.zero);
+      foreach (RaycastHit2D h in hits)
       {
-        selectedUnit = hit.collider.gameObject;
-        Stack curStack = selectedUnit.GetComponent<Stack>();
+        Stack curStack = h.transform.GetComponent<Stack>();
         if (curStack != null)
         {
-          mainUI.GetComponent<MainUI>().ClearSelectedStack();
+          selectedUnit = h.collider.gameObject;
           mainUI.GetComponent<MainUI>().SetSelectedStack(curStack);
         }
-        Debug.Log(hit.collider.transform.name);
+        Debug.Log(h.collider.transform.name);
       }
     }
 
@@ -331,19 +355,27 @@ public class GameController : MonoBehaviour
               {
                 killStack(curStack);
                 selectedUnit = null;
+                setMove = false;
               }
             }
           }
         }
-
         if (setMove)
         {
           // Set blocked paths depending on the castles and stacks
-          bool[,] obstructed = generateObstructedFields(curStack,allStacks, allCastles);
+          bool[,] obstructed = generateObstructedFields(curStack,AllStacks, allCastles);
 
           // Set stack movement path
           curStack.Path = AStar.ShortestPath(terrainTiles, obstructed, (int)selectedUnit.transform.position.x,
             (int)selectedUnit.transform.position.y, (int)pos.x, (int)pos.y);
+        }
+        // update the UI, to deal with dead
+        if (selectedUnit != null)
+        {
+          mainUI.GetComponent<MainUI>().SetSelectedStack(selectedUnit.GetComponent<Stack>());
+        } else if(selectedUnit == null)
+        {
+          mainUI.GetComponent<MainUI>().ClearSelectedStack();
         }
       }
     }
@@ -383,9 +415,14 @@ public class GameController : MonoBehaviour
         cas.NextTurn();
       }
 
-      foreach (Stack st in allStacks)
+      foreach (Stack st in AllStacks)
       {
         st.NextTurn();
+      }
+      // update the UI, to deal with new Units
+      if (selectedUnit != null)
+      {
+        mainUI.GetComponent<MainUI>().SetSelectedStack(selectedUnit.GetComponent<Stack>());
       }
     }
 
@@ -393,12 +430,13 @@ public class GameController : MonoBehaviour
     if (Input.GetKeyDown(KeyCode.Return))
     {
       selectedUnit = null;
+      mainUI.GetComponent<MainUI>().ClearSelectedStack();
     }
   }
 
   private bool[,] generateObstructedFields(Stack curStack, List<Stack> allStacks, List<Castle> allCastles)
   {
-    bool[,] obstructed = new bool[size, size];
+    bool[,] obstructed = new bool[Constants.Size, Constants.Size];
     foreach(Stack st in allStacks)
     {
       if(st.Owner != curStack.Owner)
@@ -428,14 +466,13 @@ public class GameController : MonoBehaviour
 
   private void killStack(Stack stack)
   {
-    allStacks.Remove(stack);
+    AllStacks.Remove(stack);
     Destroy(stack.gameObject);
-    stack = null;
   }
 
-  public void AddStack(Stack stack)
+  public void AddStackToAllStacks(Stack stack)
   {
-    allStacks.Add(stack);
+    AllStacks.Add(stack);
   }
   private void tempBuildCastle(TerrainTile[,] terrainLayout, int xcoord, int ycoord)
   {
@@ -508,7 +545,11 @@ public class GameController : MonoBehaviour
           if (!toClose)
           {
             GameObject obj = Instantiate(Resources.Load("Prefabs/Castle", typeof(GameObject)), new Vector3(i + 0.5f, j + 0.5f), Quaternion.identity) as GameObject;
-            allCastles.Add(obj.GetComponent<Castle>());
+            Castle cas = obj.GetComponent<Castle>();
+            allCastles.Add(cas);
+            // Castle test
+            cas.Owner = new Player();
+            cas.CurrentProduction = new UnitType("test", 1, 1, 10, 10, "HeavyInfantry", 1, 1);
           }
         } else
         {

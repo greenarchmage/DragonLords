@@ -10,6 +10,7 @@ namespace Assets.Scripts.Utility
     public static int StackSize = 8;
     public static int ProductionSize = 4;
     public static int DiceRange = 20;
+    public static int Size = 20;
   }
 }
 

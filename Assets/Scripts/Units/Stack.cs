@@ -8,7 +8,7 @@ using Assets.Scripts.Units;
 public class Stack : MonoBehaviour
 {
   public Player Owner { get; set; }
-  public int StackSize { get; set; }
+  public int StackSize;
   /// <summary>
   /// Should not be used to insert units
   /// </summary>
@@ -68,6 +68,7 @@ public class Stack : MonoBehaviour
       }
     }
     gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load("UnitSprites/" + heighestOrder.SpriteName, typeof(Sprite)) as Sprite;
+    StackSize = Units.Count;
   }
   private void SetStackStartMovement()
   {
