@@ -102,75 +102,71 @@ public class Castle : MonoBehaviour
         int direction = 1; // the sign of the direction the loop goes
         int xi = 0;
         int yj = 0; // has to be 3 for the first run
+        bool inside = true;
         while (!unitPlaced)
         {
           #region insideCastle
-          if (counter < 3)
+          if (inside)
           {
-            curPos = initPos;
-            // still inside the castle
-            for (int y = 0; y < 2; y++)
+            Vector3 insidePos = initPos;
+            for(int y = 0; y<2; y++)
             {
-              bool posChange = false;
-              for (int x = 0; x < 2; x++)
+              for(int x = 0; x<2; x++)
               {
-                curPos = new Vector3(initPos.x + x, initPos.y - y);
-                //check if garrison is at position
-                for (int i = 0; i < Garrison.Count; i++)
-                {
-                  if (Garrison[i].transform.position == curPos)
-                  {
-                    if (Garrison[i].Units.Count == Constants.StackSize)
-                    {
-                      // The stack is full, skip to next stack
-                      // change position
-                      posChange = true;
-                      break;
-                    }
-                    else
-                    {
-                      // There is an unfull stack at the position, add new unit to stack
-                      Garrison[i].AddUnit(newUnit);
-                      unitPlaced = true;
-                      break;
-                    }
-                  }
-                }
-                // if unit is added break x increment
+                insidePos.x = initPos.x + x;
+                // the placement goes down, hence -y
+                insidePos.y = initPos.y - y;
+                // check pos inside
+                unitPlaced = CheckInside(insidePos);
                 if (unitPlaced)
                 {
                   break;
                 }
-                // some check to see if loop has not been completed
-                if (posChange)
-                {
-                  counter++;
-                  posChange = false;
-                }
-                else
-                {
-                  // instantiate new stack at pos
-                  GameObject obj = Instantiate(Resources.Load("Prefabs/Stack", typeof(GameObject)),
-                    curPos, Quaternion.identity) as GameObject;
-                  Stack newStack = obj.GetComponent<Stack>();
-                  newStack.AddUnit(newUnit);
-                  newStack.Owner = Owner;
-                  Garrison.Add(newStack);
-                  GameController.Instance.AddStackToAllStacks(newStack);
-                  unitPlaced = true;
-                  break;
-                }
               }
-              // if unit is placed break y increment
               if (unitPlaced)
               {
                 break;
               }
             }
+            inside = false;
           }
           #endregion
           else
           {
+            //int runs = 5;
+            //// spiral coordinate 
+            //// [0,0], [1,0], [2,0]
+            //// [2,1], [2,2], [2,3]
+            //// [1,3], [0,3], [-1,3]
+            //// [-1,2], [-1,1], [-1,0], [-1,-1]
+            //// [0,-1], [1,-1], [2,-1], [3,-1]
+            //int[] coord = new int[] { 0, 0 };
+            //int n = 0;
+            //int direction = 1;
+            //int armLength = 2;
+            //int coordChange = 0;
+
+            //// print initial place
+            //Console.WriteLine("[" + coord[0] + "," + coord[1] + "]");
+            //while (n < runs)
+            //{
+            //  for (int i = 0; i < armLength; i++)
+            //  {
+            //    coord[coordChange] += direction;
+            //    Console.WriteLine("[" + coord[0] + "," + coord[1] + "]");
+            //  }
+            //  coordChange = coordChange == 0 ? 1 : 0;
+            //  if ((n + 1) % 2 == 0)
+            //  {
+            //    direction *= -1;
+            //  }
+            //  else
+            //  {
+            //    armLength++;
+            //  }
+            //  n++;
+            //}
+
             // skips to the akward position
             if (!outsideSet)
             {
@@ -294,5 +290,88 @@ public class Castle : MonoBehaviour
         }
       }
     }
+  }
+
+  /// <summary>
+  /// 
+  /// </summary>
+  /// <param name="pos">Position in the castle</param>
+  /// <returns>if the unit is placed</returns>
+  private bool CheckInside(Vector3 pos)
+  {
+    Unit newUnit = new Unit(CurrentProduction);
+    for (int i = 0; i < Garrison.Count; i++)
+    {
+      if (Garrison[i].transform.position == pos)
+      {
+        if (Garrison[i].Units.Count == Constants.StackSize)
+        {
+          // The stack is full, skip to next stack
+          // change position
+          return false;
+        }
+        else
+        {
+          // There is an unfull stack at the position, add new unit to stack
+          Garrison[i].AddUnit(newUnit);
+          return true;
+        }
+      }
+    }
+    // instantiate new stack at pos
+    GameObject obj = Instantiate(Resources.Load("Prefabs/Stack", typeof(GameObject)),
+      pos, Quaternion.identity) as GameObject;
+    Stack newStack = obj.GetComponent<Stack>();
+    newStack.AddUnit(newUnit);
+    newStack.Owner = Owner;
+    Garrison.Add(newStack);
+    GameController.Instance.AddStackToAllStacks(newStack);
+    return true;
+  }
+
+  private bool CheckOutside(Vector3 pos)
+  {
+    //Unit newUnit = new Unit(CurrentProduction);
+    //foreach (Stack st in GameController.Instance.AllStacks)
+    //{
+    //  if (st.transform.position == pos)
+    //  {
+    //    if (st.Units.Count == Constants.StackSize)
+    //    {
+    //      // The stack is full, skip to next stack
+    //      // change position
+    //      posChange = true;
+    //      break;
+    //    }
+    //    else
+    //    {
+    //      // There is an unfull stack at the position, add new unit to stack
+    //      st.AddUnit(newUnit);
+    //      unitPlaced = true;
+    //    }
+    //  }
+    //}
+    //// some check to see if loop has not been completed
+    //if (posChange)
+    //{
+    //  yj++;
+    //  // change curPos
+    //  curPos.y += 1 * direction;
+    //}
+    //else
+    //{
+    //  // instantiate new stack at pos
+    //  Debug.Log("Place y");
+    //  GameObject obj = Instantiate(Resources.Load("Prefabs/Stack", typeof(GameObject)),
+    //    pos, Quaternion.identity) as GameObject;
+    //  Stack newStack = obj.GetComponent<Stack>();
+    //  newStack.AddUnit(newUnit);
+    //  newStack.Owner = Owner;
+    //  Garrison.Add(newStack);
+    //  GameController.Instance.AddStackToAllStacks(newStack);
+    //  unitPlaced = true;
+    //}
+
+    return false;
   }
 }
