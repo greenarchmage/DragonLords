@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 5724559}
   - component: {fileID: 5724561}
   - component: {fileID: 5724560}
+  - component: {fileID: 5724562}
   m_Layer: 5
   m_Name: TopPanel
   m_TagString: Untagged
@@ -160,6 +161,17 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 5724558}
+--- !u!114 &5724562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 5724558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0aa7ba3faf44cd54082959f2f422e620, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7832073
 GameObject:
   m_ObjectHideFlags: 0
@@ -1387,9 +1399,8 @@ MonoBehaviour:
   main: {fileID: 776888203}
   CastleMenuUI: {fileID: 1882726449}
   mainUI: {fileID: 854452859}
+  topPanel: {fileID: 5724558}
   AllStacks: []
-  soundManager: {fileID: 0}
-  score: 0
 --- !u!4 &520215094
 Transform:
   m_ObjectHideFlags: 0

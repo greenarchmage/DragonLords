@@ -21,6 +21,7 @@ public class Castle : MonoBehaviour
     }
   }
   public Player Owner { get; set; }
+  public int Income { get; set; }
 
   private int currentProductionTime;
 
@@ -187,6 +188,12 @@ public class Castle : MonoBehaviour
           }
         }
       }
+    }
+
+    // increase player income
+    if(Owner != null)
+    {
+      Owner.Gold += Income;
     }
   }
 

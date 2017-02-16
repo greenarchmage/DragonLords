@@ -14,6 +14,8 @@ public class GameController : MonoBehaviour
 
   public GameObject mainUI;
 
+  public GameObject topPanel;
+
   //private static int size = 20;
   private GameObject selectedUnit;
   public TerrainTile[,] TerrainTiles { get; private set; }
@@ -23,6 +25,7 @@ public class GameController : MonoBehaviour
 
   public List<UnitType> UnitTypes = new List<UnitType>();
 
+  private List<Player> players = new List<Player>();
   //Camera
   private float minX;
   private float maxX;
@@ -33,8 +36,8 @@ public class GameController : MonoBehaviour
 
   public static GameController Instance;
 
-  public GameObject soundManager;
-  public int score;
+  // Turn objects
+  private int playerPointer;
 
   void Awake()
   {
@@ -67,11 +70,13 @@ public class GameController : MonoBehaviour
     interactor.Name = "Karath";
     interactor.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry, dragon });
     interactor.Gold = 1000;
+    players.Add(interactor);
 
     Player enemy = new Player();
     enemy.Name = "Algast";
     enemy.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry });
     enemy.Gold = 100;
+    players.Add(enemy);
 
     #region TempTerrain
     // temp manual terrain 
@@ -207,19 +212,23 @@ public class GameController : MonoBehaviour
 
     AddStackToAllStacks(enemyStack2);
 
+    // Set starting player
+    topPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(players[playerPointer]);
+
     // camera init vals
     // limit the camera based on the map size
     float vertExtent = main.orthographicSize;
     float horzExtent = vertExtent * Screen.width / Screen.height;
 
     // Size taken from bottom panel
-    float uiPadding = 2*main.orthographicSize *(mainUI.GetComponent<RectTransform>().rect.height / Screen.height);
+    float uiPaddingBot = 2 * main.orthographicSize * (mainUI.GetComponent<RectTransform>().rect.height / Screen.height);
+    float uiPaddingTop = 2 * main.orthographicSize * (topPanel.GetComponent<RectTransform>().rect.height / Screen.height);
     // off set is calculated based on the size of the map
     float offset = Constants.Size/2f -0.5f;
     minX = horzExtent - ((float)Constants.Size) / 2.0f + offset;
     maxX = ((float)Constants.Size) / 2.0f - horzExtent + offset;
-    minY = vertExtent - ((float)Constants.Size) / 2.0f + offset- uiPadding;
-    maxY = ((float)Constants.Size) / 2.0f - vertExtent + offset;
+    minY = vertExtent - ((float)Constants.Size) / 2.0f + offset- uiPaddingBot;
+    maxY = ((float)Constants.Size) / 2.0f - vertExtent + offset + uiPaddingTop;
     if(maxX- minX < 0)
     {
       float diffX = minX - maxX;
@@ -270,7 +279,7 @@ public class GameController : MonoBehaviour
       foreach (RaycastHit2D h in hits)
       {
         Stack curStack = h.transform.GetComponent<Stack>();
-        if (curStack != null)
+        if (curStack != null && curStack.Owner == players[playerPointer])
         {
           selectedUnit = h.collider.gameObject;
           mainUI.GetComponent<MainUI>().SetSelectedStack(curStack);
@@ -400,21 +409,7 @@ public class GameController : MonoBehaviour
     // Next turn. Set all stacks movement. Should be called from else where
     if (Input.GetKeyDown(KeyCode.Return))
     {
-      //first castles for unit creation
-      foreach (Castle cas in allCastles)
-      {
-        cas.NextTurn();
-      }
-
-      foreach (Stack st in AllStacks)
-      {
-        st.NextTurn();
-      }
-      // update the UI, to deal with new Units
-      if (selectedUnit != null)
-      {
-        mainUI.GetComponent<MainUI>().SetSelectedStack(selectedUnit.GetComponent<Stack>());
-      }
+      nextTurn();
     }
 
     // Deselect all
@@ -424,6 +419,7 @@ public class GameController : MonoBehaviour
       mainUI.GetComponent<MainUI>().ClearSelectedStack();
     }
 
+    // TODO remove
     //Test location mechanism
     if (Input.GetKeyDown(KeyCode.LeftControl))
     {
@@ -442,10 +438,41 @@ public class GameController : MonoBehaviour
 
   private void handleUnityLog(string logString, string stackTrace, LogType type)
   {
-    // do stuff
+    // error message handling for debugging and testing purposes
   }
 
+  private void nextTurn()
+  {
+    // TODO handle unit production, such that it is handled on player start of turn
+    //first castles for unit creation
+    foreach (Castle cas in allCastles)
+    {
+      cas.NextTurn();
+    }
 
+    foreach (Stack st in AllStacks)
+    {
+      st.NextTurn();
+    }
+
+    // change current player
+    playerPointer++;
+    if (playerPointer >= players.Count)
+    {
+      playerPointer = 0;
+    }
+    topPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(players[playerPointer]);
+    // clear selected unit
+    selectedUnit = null;
+    mainUI.GetComponent<MainUI>().ClearSelectedStack();
+
+    // TODO set the players last selected stack
+    // update the UI, to deal with new Units
+    //if (selectedUnit != null)
+    //{
+    //  mainUI.GetComponent<MainUI>().SetSelectedStack(selectedUnit.GetComponent<Stack>());
+    //}
+  }
   private bool[,] generateObstructedFields(Stack curStack, List<Stack> allStacks, List<Castle> allCastles)
   {
     bool[,] obstructed = new bool[Constants.Size, Constants.Size];
@@ -579,6 +606,7 @@ public class GameController : MonoBehaviour
           {
             GameObject obj = Instantiate(Resources.Load("Prefabs/Castle", typeof(GameObject)), new Vector3(i + 0.5f, j + 0.5f), Quaternion.identity) as GameObject;
             Castle cas = obj.GetComponent<Castle>();
+            cas.Income = UnityEngine.Random.Range(5, 20);
             allCastles.Add(cas);
           }
         } else
