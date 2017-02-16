@@ -19,10 +19,11 @@ public class Stack : MonoBehaviour
 
   private PriorityQueueMin<Unit> units = new PriorityQueueMin<Unit>();
 
+  private Vector3 oldPos;
   // Use this for initialization
   void Start()
   {
-
+    oldPos = transform.position;
   }
 
   // Update is called once per frame
@@ -40,8 +41,9 @@ public class Stack : MonoBehaviour
     {
       // move towards current target
       Vector3 newpos = new Vector3(Path[0].Coord[0], Path[0].Coord[1]);
+      oldPos = transform.position;
       transform.position = Vector3.MoveTowards(transform.position, newpos, 0.05f);
-
+      GameController.Instance.UpdateStackPosition(this, oldPos);
       // when target is reached, check if you can move to next target
       if (Vector3.Distance(transform.position, new Vector3(Path[0].Coord[0], Path[0].Coord[1])) <= 0)
       {

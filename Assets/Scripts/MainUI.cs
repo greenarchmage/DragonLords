@@ -19,7 +19,6 @@ public class MainUI : MonoBehaviour {
   public void SetSelectedStack(Stack st)
   {
     ClearSelectedStack();
-    Debug.Log(transform.FindChild("StackUnits"));
     // get the stack visualization
     Transform stackPanel = transform.FindChild("StackUnits");
     int i = 0;

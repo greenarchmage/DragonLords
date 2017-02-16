@@ -15,7 +15,8 @@ namespace Assets.Scripts.Units
     public string SpriteName { get; set; }
     public int Price { get; set; }
     public int ProdutionTurns { get; set; }
-    public UnitType(string name, int str, int hit, int spe, int ord, string sprit, int price, int turns)
+    public TerrainTile.MoveType MoveType { get; set; }
+    public UnitType(string name, int str, int hit, int spe, int ord, string sprit, int price, int turns, TerrainTile.MoveType moveType)
     {
       Name = name;
       Strength = str;
@@ -25,6 +26,7 @@ namespace Assets.Scripts.Units
       SpriteName = sprit;
       Price = price;
       ProdutionTurns = turns;
+      MoveType = moveType;
     }
 
     public int CompareTo(UnitType other)

@@ -165,5 +165,11 @@ namespace Assets.Scripts.Utility
     {
       return priorityHeap.Contains(val);
     }
+
+    public void Clear()
+    {
+      priorityHeap = new T[1];
+      Count = 0;
+    }
   }
 }

@@ -16,7 +16,8 @@ public class GameController : MonoBehaviour
 
   //private static int size = 20;
   private GameObject selectedUnit;
-  private TerrainTile[,] terrainTiles;
+  public TerrainTile[,] TerrainTiles { get; private set; }
+  public List<Stack>[,] AllStacksGrid = new List<Stack>[Constants.Size, Constants.Size];
   public List<Stack> AllStacks = new List<Stack>();
   private List<Castle> allCastles = new List<Castle>();
 
@@ -43,6 +44,9 @@ public class GameController : MonoBehaviour
       Instance = this;
 
     DontDestroyOnLoad(this);
+
+    // for error handling and testing purpose
+    Application.logMessageReceived += handleUnityLog;
   }
 
   // Use this for initialization
@@ -52,9 +56,9 @@ public class GameController : MonoBehaviour
      * TEMP code for testing
      ********************************************/
     // Unit Types
-    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1,"HeavyInfantry", 80,1);
-    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2, "Cavalry", 120,2);
-    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3, "Dragon", 300,3);
+    UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1,"HeavyInfantry", 80,1, TerrainTile.MoveType.Normal);
+    UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2, "Cavalry", 120,2, TerrainTile.MoveType.Normal);
+    UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3, "Dragon", 300,3, TerrainTile.MoveType.Flying);
     UnitTypes.Add(heavyInf);
     UnitTypes.Add(cavalry);
     UnitTypes.Add(dragon);
@@ -71,110 +75,110 @@ public class GameController : MonoBehaviour
 
     #region TempTerrain
     // temp manual terrain 
-    terrainTiles = new TerrainTile[Constants.Size, Constants.Size];
+    TerrainTiles = new TerrainTile[Constants.Size, Constants.Size];
     // Fill with grass
-    for (int i = 0; i < terrainTiles.GetLength(0); i++)
+    for (int i = 0; i < TerrainTiles.GetLength(0); i++)
     {
-      for (int j = 0; j < terrainTiles.GetLength(1); j++)
+      for (int j = 0; j < TerrainTiles.GetLength(1); j++)
       {
-        terrainTiles[i, j] = new TerrainTile(TerrainTile.TerrainType.Grass);
+        TerrainTiles[i, j] = new TerrainTile(TerrainTile.TerrainType.Grass);
       }
     }
     // top left castle
-    tempBuildCastle(terrainTiles, 2, 2);
+    tempBuildCastle(TerrainTiles, 2, 2);
     // top right castle
-    tempBuildCastle(terrainTiles, 16, 2);
+    tempBuildCastle(TerrainTiles, 16, 2);
     // center castle 
-    tempBuildCastle(terrainTiles, 10, 7);
+    tempBuildCastle(TerrainTiles, 10, 7);
     // bottom center castle
-    tempBuildCastle(terrainTiles, 9, 15);
+    tempBuildCastle(TerrainTiles, 9, 15);
     // bottom right castle
-    tempBuildCastle(terrainTiles, 15, 18);
+    tempBuildCastle(TerrainTiles, 15, 18);
 
     // top right forest
     for (int i = 0; i < 4; i++)
     {
-      terrainTiles[16 + i, 0] = new TerrainTile( TerrainTile.TerrainType.Forest);
+      TerrainTiles[16 + i, 0] = new TerrainTile( TerrainTile.TerrainType.Forest);
     }
-    terrainTiles[19, 1] = new TerrainTile(TerrainTile.TerrainType.Forest);
-    terrainTiles[19, 2] = new TerrainTile(TerrainTile.TerrainType.Forest);
+    TerrainTiles[19, 1] = new TerrainTile(TerrainTile.TerrainType.Forest);
+    TerrainTiles[19, 2] = new TerrainTile(TerrainTile.TerrainType.Forest);
 
     // bottom left forest
     for (int i = 0; i < 2; i++)
     {
       for (int j = 0; j < 2; j++)
       {
-        terrainTiles[4 + i, 17 + j] = new TerrainTile( TerrainTile.TerrainType.Forest);
+        TerrainTiles[4 + i, 17 + j] = new TerrainTile( TerrainTile.TerrainType.Forest);
       }
     }
-    terrainTiles[6, 18] = new TerrainTile(TerrainTile.TerrainType.Forest);
+    TerrainTiles[6, 18] = new TerrainTile(TerrainTile.TerrainType.Forest);
 
     // center mountain
-    terrainTiles[9, 4] = new TerrainTile( TerrainTile.TerrainType.Mountain);
-    terrainTiles[9, 5] = new TerrainTile(TerrainTile.TerrainType.Mountain);
+    TerrainTiles[9, 4] = new TerrainTile( TerrainTile.TerrainType.Mountain);
+    TerrainTiles[9, 5] = new TerrainTile(TerrainTile.TerrainType.Mountain);
     for (int i = 0; i < 2; i++)
     {
       for (int j = 0; j < 2; j++)
       {
-        terrainTiles[7 + i, 5 + j] = new TerrainTile(TerrainTile.TerrainType.Mountain);
+        TerrainTiles[7 + i, 5 + j] = new TerrainTile(TerrainTile.TerrainType.Mountain);
       }
     }
-    terrainTiles[6, 7] = new TerrainTile(TerrainTile.TerrainType.Mountain);
-    terrainTiles[7, 7] = new TerrainTile(TerrainTile.TerrainType.Mountain);
+    TerrainTiles[6, 7] = new TerrainTile(TerrainTile.TerrainType.Mountain);
+    TerrainTiles[7, 7] = new TerrainTile(TerrainTile.TerrainType.Mountain);
 
     // center road
     for (int i = 0; i < 7; i++)
     {
-      terrainTiles[9, 8 + i] = new TerrainTile( TerrainTile.TerrainType.Road);
+      TerrainTiles[9, 8 + i] = new TerrainTile( TerrainTile.TerrainType.Road);
     }
 
     // Center bridge, overwrites road
-    terrainTiles[9, 12] = new TerrainTile( TerrainTile.TerrainType.Bridge);
+    TerrainTiles[9, 12] = new TerrainTile( TerrainTile.TerrainType.Bridge);
 
     // bottom road
     for (int i = 0; i < 2; i++)
     {
-      terrainTiles[11 + i, 16] = new TerrainTile(TerrainTile.TerrainType.Road);
+      TerrainTiles[11 + i, 16] = new TerrainTile(TerrainTile.TerrainType.Road);
     }
     for (int i = 0; i < 4; i++)
     {
-      terrainTiles[12 + i, 17] = new TerrainTile(TerrainTile.TerrainType.Road);
+      TerrainTiles[12 + i, 17] = new TerrainTile(TerrainTile.TerrainType.Road);
     }
 
     // water
-    tempWaterVertLine(terrainTiles, 4, 15, 19);
-    tempWaterVertLine(terrainTiles, 6, 14, 18);
-    tempWaterVertLine(terrainTiles, 6, 13, 17);
-    tempWaterVertLine(terrainTiles, 8, 12, 16);
-    tempWaterVertLine(terrainTiles, 8, 12, 15);
-    tempWaterVertLine(terrainTiles, 11, 12, 14);
-    tempWaterHoriLine(terrainTiles, 10, 13, 12);
+    tempWaterVertLine(TerrainTiles, 4, 15, 19);
+    tempWaterVertLine(TerrainTiles, 6, 14, 18);
+    tempWaterVertLine(TerrainTiles, 6, 13, 17);
+    tempWaterVertLine(TerrainTiles, 8, 12, 16);
+    tempWaterVertLine(TerrainTiles, 8, 12, 15);
+    tempWaterVertLine(TerrainTiles, 11, 12, 14);
+    tempWaterHoriLine(TerrainTiles, 10, 13, 12);
 
     for (int i = 0; i < 6; i++)
     {
       for (int j = 0; j < 3; j++)
       {
-        terrainTiles[8 + i, 0 + j] =new TerrainTile( TerrainTile.TerrainType.Water);
+        TerrainTiles[8 + i, 0 + j] =new TerrainTile( TerrainTile.TerrainType.Water);
       }
     }
 
-    tempWaterVertLine(terrainTiles, 0, 4, 7);
-    tempWaterVertLine(terrainTiles, 0, 6, 6);
-    tempWaterVertLine(terrainTiles, 0, 7, 5);
-    tempWaterHoriLine(terrainTiles, 0, 5, 0);
+    tempWaterVertLine(TerrainTiles, 0, 4, 7);
+    tempWaterVertLine(TerrainTiles, 0, 6, 6);
+    tempWaterVertLine(TerrainTiles, 0, 7, 5);
+    tempWaterHoriLine(TerrainTiles, 0, 5, 0);
 
-    tempWaterVertLine(terrainTiles, 5, 13, 4);
-    tempWaterVertLine(terrainTiles, 5, 14, 3);
-    tempWaterVertLine(terrainTiles, 5, 19, 2);
-    tempWaterVertLine(terrainTiles, 5, 19, 1);
-    tempWaterVertLine(terrainTiles, 0, 19, 0);
+    tempWaterVertLine(TerrainTiles, 5, 13, 4);
+    tempWaterVertLine(TerrainTiles, 5, 14, 3);
+    tempWaterVertLine(TerrainTiles, 5, 19, 2);
+    tempWaterVertLine(TerrainTiles, 5, 19, 1);
+    tempWaterVertLine(TerrainTiles, 0, 19, 0);
 
-    tempWaterVertLine(terrainTiles, 11, 12, 5);
-    tempWaterHoriLine(terrainTiles, 6, 8, 12);
-    terrainTiles[2, 5] = new TerrainTile( TerrainTile.TerrainType.Bridge);
+    tempWaterVertLine(TerrainTiles, 11, 12, 5);
+    tempWaterHoriLine(TerrainTiles, 6, 8, 12);
+    TerrainTiles[2, 5] = new TerrainTile( TerrainTile.TerrainType.Bridge);
     #endregion
     // instantiate terrain, main function
-    instantiateTerrain(terrainTiles);
+    instantiateTerrain(TerrainTiles);
 
 
     // temp set owner
@@ -187,21 +191,21 @@ public class GameController : MonoBehaviour
     playerStack.AddUnit(playerUnit2);
     playerStack.AddUnit(playerUnit3);
 
-    AllStacks.Add(playerStack);
+    AddStackToAllStacks(playerStack);
 
     Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
     enemyStack.Owner = enemy;
     Unit enemyUnit = new Unit(heavyInf);
     enemyStack.AddUnit(enemyUnit);
 
-    AllStacks.Add(enemyStack);
+    AddStackToAllStacks(enemyStack);
 
     Stack enemyStack2 = GameObject.Find("EnemyStack2").GetComponent<Stack>();
     enemyStack2.Owner = enemy;
     Unit enemyUnit2 = new Unit(heavyInf);
     enemyStack2.AddUnit(enemyUnit2);
 
-    AllStacks.Add(enemyStack2);
+    AddStackToAllStacks(enemyStack2);
 
     // camera init vals
     // limit the camera based on the map size
@@ -261,17 +265,6 @@ public class GameController : MonoBehaviour
       pos.x = Mathf.Round(pos.x);
       pos.y = Mathf.Round(pos.y);
       pos.z = 0;
-      //RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero);
-      //if (hit)
-      //{
-      //  selectedUnit = hit.collider.gameObject;
-      //  Stack curStack = selectedUnit.GetComponent<Stack>();
-      //  if (curStack != null)
-      //  {
-      //    mainUI.GetComponent<MainUI>().SetSelectedStack(curStack);
-      //  }
-      //  Debug.Log(hit.collider.transform.name);
-      //}
 
       RaycastHit2D[] hits = Physics2D.RaycastAll(pos, Vector2.zero);
       foreach (RaycastHit2D h in hits)
@@ -282,7 +275,6 @@ public class GameController : MonoBehaviour
           selectedUnit = h.collider.gameObject;
           mainUI.GetComponent<MainUI>().SetSelectedStack(curStack);
         }
-        Debug.Log(h.collider.transform.name);
       }
     }
 
@@ -297,7 +289,7 @@ public class GameController : MonoBehaviour
 
       // check if selected object is a stack
       Stack curStack = selectedUnit.gameObject.GetComponent<Stack>();
-      if(curStack != null && checkMovementPossible(curStack, terrainTiles[(int)pos.x, (int)pos.y]))
+      if(curStack != null && checkMovementPossible(curStack, TerrainTiles[(int)pos.x, (int)pos.y]))
       {
         // assume the stack will move, unless something is hit
         bool setMove = true;
@@ -312,11 +304,10 @@ public class GameController : MonoBehaviour
           // check if the castle is hostile then do battle
           if (cas != null && cas.Owner !=curStack.Owner && (Vector3.Distance(cas.transform.position, curStack.transform.position) < 3f))
           {
-            Debug.Log("Castle fight");
             // Handle battle against castles
             bool win = true;
             // Fight the entire garrison
-            //TODO handle fights in groups
+            //TODO handle fights in groups, adding all the stack together in a great stack, such that bonuses stack
             foreach (Stack st in cas.Garrison)
             {
               if (curStack.Battle(st))
@@ -338,7 +329,7 @@ public class GameController : MonoBehaviour
             }
             else
             {
-              cas.Owner = curStack.Owner;
+              cas.ChangeOwner(curStack.Owner);
             }
             break;
           }
@@ -366,7 +357,7 @@ public class GameController : MonoBehaviour
           bool[,] obstructed = generateObstructedFields(curStack,AllStacks, allCastles);
 
           // Set stack movement path
-          curStack.Path = AStar.ShortestPath(terrainTiles, obstructed, (int)selectedUnit.transform.position.x,
+          curStack.Path = AStar.ShortestPath(TerrainTiles, obstructed, (int)selectedUnit.transform.position.x,
             (int)selectedUnit.transform.position.y, (int)pos.x, (int)pos.y);
         }
         // update the UI, to deal with dead
@@ -407,7 +398,7 @@ public class GameController : MonoBehaviour
      * Hotkey actions
      ***********************************/
     // Next turn. Set all stacks movement. Should be called from else where
-    if (Input.GetKeyDown(KeyCode.Space))
+    if (Input.GetKeyDown(KeyCode.Return))
     {
       //first castles for unit creation
       foreach (Castle cas in allCastles)
@@ -427,12 +418,33 @@ public class GameController : MonoBehaviour
     }
 
     // Deselect all
-    if (Input.GetKeyDown(KeyCode.Return))
+    if (Input.GetKeyDown(KeyCode.Space))
     {
       selectedUnit = null;
       mainUI.GetComponent<MainUI>().ClearSelectedStack();
     }
+
+    //Test location mechanism
+    if (Input.GetKeyDown(KeyCode.LeftControl))
+    {
+      foreach(List<Stack> list in AllStacksGrid)
+      {
+        if(list != null)
+        {
+          foreach (Stack st in list)
+          {
+            Debug.Log("Pos " + st.transform.position.ToString());
+          }
+        }
+      }
+    }
   }
+
+  private void handleUnityLog(string logString, string stackTrace, LogType type)
+  {
+    // do stuff
+  }
+
 
   private bool[,] generateObstructedFields(Stack curStack, List<Stack> allStacks, List<Castle> allCastles)
   {
@@ -466,13 +478,34 @@ public class GameController : MonoBehaviour
 
   private void killStack(Stack stack)
   {
-    AllStacks.Remove(stack);
+    RemoveStackFromAllStacks(stack);
     Destroy(stack.gameObject);
   }
 
+  public void RemoveStackFromAllStacks(Stack stack)
+  {
+    AllStacks.Remove(stack);
+    AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y].Remove(stack);
+  }
   public void AddStackToAllStacks(Stack stack)
   {
     AllStacks.Add(stack);
+    addStackToGrid(stack);
+  }
+
+  public void UpdateStackPosition(Stack stack, Vector3 oldPos)
+  {
+    AllStacksGrid[(int)oldPos.x, (int)oldPos.y].Remove(stack);
+    addStackToGrid(stack);
+  }
+
+  private void addStackToGrid(Stack stack)
+  {
+    if (AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y] == null)
+    {
+      AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y] = new List<Stack>();
+    }
+    AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y].Add(stack);
   }
   private void tempBuildCastle(TerrainTile[,] terrainLayout, int xcoord, int ycoord)
   {
@@ -547,9 +580,6 @@ public class GameController : MonoBehaviour
             GameObject obj = Instantiate(Resources.Load("Prefabs/Castle", typeof(GameObject)), new Vector3(i + 0.5f, j + 0.5f), Quaternion.identity) as GameObject;
             Castle cas = obj.GetComponent<Castle>();
             allCastles.Add(cas);
-            // Castle test
-            cas.Owner = new Player();
-            cas.CurrentProduction = new UnitType("test", 1, 1, 10, 10, "HeavyInfantry", 1, 1);
           }
         } else
         {
