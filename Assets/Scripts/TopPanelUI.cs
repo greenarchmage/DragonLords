@@ -15,8 +15,8 @@ public class TopPanelUI : MonoBehaviour {
 	void Update () {
 		if(curPlayer != null)
     {
-      transform.FindChild("PlayerPanel").FindChild("PlayerName").GetComponent<Text>().text = curPlayer.Name;
-      transform.FindChild("PlayerPanel").FindChild("GoldVal").GetComponent<Text>().text = "" + curPlayer.Gold;
+      transform.Find("PlayerPanel").Find("PlayerName").GetComponent<Text>().text = curPlayer.Name;
+      transform.Find("PlayerPanel").Find("GoldVal").GetComponent<Text>().text = "" + curPlayer.Gold;
     }
 	}
 

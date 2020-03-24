@@ -20,7 +20,7 @@ public class MainUI : MonoBehaviour {
   {
     ClearSelectedStack();
     // get the stack visualization
-    Transform stackPanel = transform.FindChild("StackUnits");
+    Transform stackPanel = transform.Find("StackUnits");
     int i = 0;
     foreach(Unit u in st.Units)
     {
@@ -31,7 +31,7 @@ public class MainUI : MonoBehaviour {
 
   public void ClearSelectedStack()
   {
-    Transform stackPanel = transform.FindChild("StackUnits");
+    Transform stackPanel = transform.Find("StackUnits");
     for(int i = 0; i < Constants.StackSize; i++)
     {
       stackPanel.GetChild(i).GetComponent<Image>().sprite = null;
