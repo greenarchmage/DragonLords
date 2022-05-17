@@ -1,0 +1,15 @@
+{
+    "UnitTypes": [
+        {
+            "Name": "Heavy Infantry",
+            "Strength": 3,
+            "Hits": 2,
+            "Speed": 16,
+            "Order": 1,
+            "SpriteName": "HeavyInfantry",
+            "Price": 80,
+            "ProductionTurns": 1,
+            "MoveType": "Normal"
+        }
+    ]
+}
