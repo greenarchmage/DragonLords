@@ -351,7 +351,7 @@ public class GameController : MonoBehaviour
                         }
                         break;
                     }
-                    else if (hitStack != null && curStack != null && curStack != hitStack)
+                    else if (hitStack != null && curStack != null && curStack.Owner != hitStack.Owner)
                     {
                         // Check distance, if next to target, do battle
                         if (Vector3.Distance(hitStack.transform.position, curStack.transform.position) < 2f)
