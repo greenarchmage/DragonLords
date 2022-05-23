@@ -1,0 +1,37 @@
+{
+    "UnitTypes": [
+        {
+            "Name": "Heavy Infantry",
+            "Strength": 3,
+            "Hits": 2,
+            "Speed": 16,
+            "Order": 1,
+            "SpriteName": "HeavyInfantry",
+            "Price": 80,
+            "ProductionTurns": 1,
+            "MoveType": 2
+        },
+        {
+            "Name": "Cavalry",
+            "Strength": 4,
+            "Hits": 2,
+            "Speed": 24,
+            "Order": 2,
+            "SpriteName": "Cavalry",
+            "Price": 120,
+            "ProductionTurns": 2,
+            "MoveType": 2
+        },
+        {
+            "Name": "Dragon",
+            "Strength": 9,
+            "Hits": 3,
+            "Speed": 20,
+            "Order": 3,
+            "SpriteName": "Dragon",
+            "Price": 300,
+            "ProductionTurns": 3,
+            "MoveType": 3
+        }
+    ]
+}

@@ -5,6 +5,7 @@ using Assets.Scripts.Pathfinding;
 using System.Collections.Generic;
 using Assets.Scripts.Units;
 using Assets.Scripts.Utility;
+using Assets.Scripts.GameLogic;
 
 public class GameController : MonoBehaviour
 {
@@ -12,10 +13,13 @@ public class GameController : MonoBehaviour
     public Camera MainCamera;
     // UI
     public GameObject CastleMenuUI;
-    public GameObject MainUI;
+    public GameObject BottomUI;
     public GameObject TopPanel;
 
-    private GameObject SelectedUnit;    
+    private GameObject SelectedUnit;
+
+    // TODO move this to terrain handler
+    public GameObject TerrainContainer;
     
     //Camera
     // Values for limiting camera movement
@@ -36,10 +40,11 @@ public class GameController : MonoBehaviour
     public List<Stack> AllStacks = new List<Stack>();
     private List<Castle> AllCastles = new List<Castle>();
 
-    public List<UnitType> UnitTypes = new List<UnitType>();
+    //public List<UnitType> UnitTypes = new List<UnitType>();
 
     private List<Player> Players = new List<Player>();
 
+    public GameDataContainer GameDataContainer { get; private set; }
 
     public static GameController Instance;
 
@@ -63,25 +68,30 @@ public class GameController : MonoBehaviour
          * TEMP code for testing
          ********************************************/
         // Unit Types
-        
-        //JsonUtility.FromJson()
-        UnitType heavyInf = new UnitType("Heavy Infantry", 3, 2, 16, 1, "HeavyInfantry", 80, 1, TerrainTile.MoveType.Normal);
-        UnitType cavalry = new UnitType("Cavalry", 4, 2, 24, 2, "Cavalry", 120, 2, TerrainTile.MoveType.Normal);
-        UnitType dragon = new UnitType("Dragon", 9, 3, 20, 3, "Dragon", 300, 3, TerrainTile.MoveType.Flying);
-        UnitTypes.Add(heavyInf);
-        UnitTypes.Add(cavalry);
-        UnitTypes.Add(dragon);
+        GameDataContainer = new GameDataContainer();
+        GameDataContainer.LoadUnitTypes();
+
+        UnitType heavyInf = GameDataContainer.UnitTypes[0];
+        UnitType cavalry = GameDataContainer.UnitTypes[1];
+        UnitType dragon = GameDataContainer.UnitTypes[2];
+
         // temp initilization
-        Player interactor = new Player();
-        interactor.Name = "Karath";
-        interactor.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry, dragon });
-        interactor.Gold = 1000;
+        Player interactor = new Player
+        {
+            Name = "Karath",
+            PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry, dragon }),
+            Gold = 1000,
+            BanneSpriteName = "DragonBanner",
+        };
         Players.Add(interactor);
 
-        Player enemy = new Player();
-        enemy.Name = "Algast";
-        enemy.PlayerUnits = new Assets.Scripts.Utility.PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry });
-        enemy.Gold = 100;
+        Player enemy = new Player
+        {
+            Name = "Algast",
+            PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry }),
+            Gold = 100,
+            BanneSpriteName = "KnightBanner",
+        };
         Players.Add(enemy);
 
         #region TempTerrain
@@ -201,6 +211,7 @@ public class GameController : MonoBehaviour
         playerStack.AddUnit(playerUnit);
         playerStack.AddUnit(playerUnit2);
         playerStack.AddUnit(playerUnit3);
+        playerStack.NextTurn();
 
         AddStackToAllStacks(playerStack);
 
@@ -208,6 +219,7 @@ public class GameController : MonoBehaviour
         enemyStack.Owner = enemy;
         Unit enemyUnit = new Unit(heavyInf);
         enemyStack.AddUnit(enemyUnit);
+        enemyStack.NextTurn();
 
         AddStackToAllStacks(enemyStack);
 
@@ -215,6 +227,7 @@ public class GameController : MonoBehaviour
         enemyStack2.Owner = enemy;
         Unit enemyUnit2 = new Unit(heavyInf);
         enemyStack2.AddUnit(enemyUnit2);
+        enemyStack2.NextTurn();
 
         AddStackToAllStacks(enemyStack2);
 
@@ -229,7 +242,7 @@ public class GameController : MonoBehaviour
         float horzExtent = vertExtent * Screen.width / Screen.height;
 
         // Size taken from bottom panel
-        float uiPaddingBot = 2 * MainCamera.orthographicSize * (MainUI.GetComponent<RectTransform>().rect.height / Screen.height);
+        float uiPaddingBot = 2 * MainCamera.orthographicSize * (BottomUI.GetComponent<RectTransform>().rect.height / Screen.height);
         float uiPaddingTop = 2 * MainCamera.orthographicSize * (TopPanel.GetComponent<RectTransform>().rect.height / Screen.height);
         // off set is calculated based on the size of the map
         float offset = Constants.MapSize / 2f - 0.5f;
@@ -291,7 +304,7 @@ public class GameController : MonoBehaviour
                 if (curStack != null && curStack.Owner == Players[PlayerPointer])
                 {
                     SelectedUnit = h.collider.gameObject;
-                    MainUI.GetComponent<MainUI>().SetSelectedStack(curStack);
+                    BottomUI.GetComponent<BottomUI>().SetSelectedStack(curStack);
                 }
             }
         }
@@ -331,7 +344,7 @@ public class GameController : MonoBehaviour
                             if (curStack.Battle(st))
                             {
                                 Debug.Log("Kill hit stack");
-                                killStack(st);
+                                KillStack(st);
                             }
                             else
                             {
@@ -342,7 +355,7 @@ public class GameController : MonoBehaviour
                         if (!win)
                         {
                             Debug.Log("Kill cur stack");
-                            killStack(curStack);
+                            KillStack(curStack);
                             SelectedUnit = null;
                         }
                         else
@@ -358,11 +371,11 @@ public class GameController : MonoBehaviour
                         {
                             if (curStack.Battle(hitStack))
                             {
-                                killStack(hitStack);
+                                KillStack(hitStack);
                             }
                             else
                             {
-                                killStack(curStack);
+                                KillStack(curStack);
                                 SelectedUnit = null;
                                 setMove = false;
                             }
@@ -381,11 +394,11 @@ public class GameController : MonoBehaviour
                 // update the UI, to deal with dead
                 if (SelectedUnit != null)
                 {
-                    MainUI.GetComponent<MainUI>().SetSelectedStack(SelectedUnit.GetComponent<Stack>());
+                    BottomUI.GetComponent<BottomUI>().SetSelectedStack(SelectedUnit.GetComponent<Stack>());
                 }
                 else if (SelectedUnit == null)
                 {
-                    MainUI.GetComponent<MainUI>().ClearSelectedStack();
+                    BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
                 }
             }
         }
@@ -426,7 +439,7 @@ public class GameController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             SelectedUnit = null;
-            MainUI.GetComponent<MainUI>().ClearSelectedStack();
+            BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
         }
 
         // TODO remove
@@ -474,7 +487,7 @@ public class GameController : MonoBehaviour
         TopPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(Players[PlayerPointer]);
         // clear selected unit
         SelectedUnit = null;
-        MainUI.GetComponent<MainUI>().ClearSelectedStack();
+        BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
 
         // TODO set the players last selected stack
         // update the UI, to deal with new Units
@@ -514,7 +527,7 @@ public class GameController : MonoBehaviour
         return curStack.Movement >= tile.Movecost;
     }
 
-    private void killStack(Stack stack)
+    private void KillStack(Stack stack)
     {
         RemoveStackFromAllStacks(stack);
         Destroy(stack.gameObject);
@@ -620,6 +633,7 @@ public class GameController : MonoBehaviour
                     if (!toClose)
                     {
                         GameObject obj = Instantiate(Resources.Load("Prefabs/Castle", typeof(GameObject)), new Vector3(i + 0.5f, j + 0.5f), Quaternion.identity) as GameObject;
+                        obj.transform.parent = TerrainContainer.transform;
                         Castle cas = obj.GetComponent<Castle>();
                         cas.Income = UnityEngine.Random.Range(5, 20);
                         AllCastles.Add(cas);
@@ -627,7 +641,8 @@ public class GameController : MonoBehaviour
                 }
                 else
                 {
-                    Instantiate(Resources.Load("Prefabs/" + terrainType, typeof(GameObject)), new Vector3(i, j), Quaternion.identity);
+                    GameObject obj = Instantiate(Resources.Load("Prefabs/" + terrainType, typeof(GameObject)), new Vector3(i, j), Quaternion.identity) as GameObject;
+                    obj.transform.parent = TerrainContainer.transform;
                 }
 
             }

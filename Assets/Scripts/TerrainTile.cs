@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Text.Json.Serialization;
 
 public class TerrainTile
 {
@@ -11,10 +10,9 @@ public class TerrainTile
         Road, Forest, Mountain, Castle, Bridge, Water, Grass
     }
 
-    //[JsonConverter(typeof(StringEnumConverter))]
     public enum MoveType
     {
-        WaterPassable, Impassable, Normal, Flying, Transition
+        WaterPassable = 0, Impassable = 1, Normal = 2, Flying = 3, Transition = 4
     }
 
     public TerrainType Type { get; set; }
