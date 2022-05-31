@@ -7,7 +7,9 @@ public class TerrainTile
 {
     public enum TerrainType
     {
-        Road, Forest, Mountain, Castle, Bridge, Water, Grass
+        Road, Forest, Mountain, Castle, Bridge, Water, Grass,
+        Swamp,
+        ForestGrass
     }
 
     public enum MoveType
