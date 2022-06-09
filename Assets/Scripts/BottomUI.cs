@@ -16,7 +16,7 @@ public class BottomUI : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-
+        Stacks = new List<Stack>();
     }
 
     // Update is called once per frame
@@ -32,7 +32,7 @@ public class BottomUI : MonoBehaviour
     public void SetSelectedStack(Stack st)
     {
         ClearSelectedStack();
-        Stack = st;
+        Stacks.Add(st);
         // get the stack visualization
         Transform stackPanel = transform.Find("StackUnits");
         int i = 0;
@@ -50,17 +50,20 @@ public class BottomUI : MonoBehaviour
         // get the stack visualization
         Transform stackPanel = transform.Find("StackUnits");
         int i = 0;
-        foreach (Unit u in Stack.Units)
+        foreach(var stack in Stacks)
         {
-            var unitObj = stackPanel.GetChild(i);
-            unitObj.GetChild(0).GetComponent<TextMeshProUGUI>().text = u.RemainingMovement.ToString();
-            i++;
+            foreach (Unit u in stack.Units)
+            {
+                var unitObj = stackPanel.GetChild(i);
+                unitObj.GetChild(0).GetComponent<TextMeshProUGUI>().text = u.RemainingMovement.ToString();
+                i++;
+            }
         }
     }
 
     public void ClearSelectedStack()
     {
-        Stack = null;
+        Stacks = new List<Stack>();
         Transform stackPanel = transform.Find("StackUnits");
         for (int i = 0; i < Constants.StackSize; i++)
         {
