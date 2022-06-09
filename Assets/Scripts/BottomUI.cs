@@ -3,13 +3,16 @@ using UnityEngine.UI;
 using Assets.Scripts.Units;
 using Assets.Scripts.Utility;
 using TMPro;
+using System.Collections.Generic;
 
 /// <summary>
 /// Panel for handling the display on the bottom of the screen
 /// </summary>
 public class BottomUI : MonoBehaviour
 {
-    private Stack Stack { get; set; }
+    // Handle a list of stacks for when more than one is present atop each other
+    private List<Stack> Stacks { get; set; }
+    //private Stack Stack { get; set; }
     // Use this for initialization
     void Start()
     {
@@ -19,7 +22,7 @@ public class BottomUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Stack != null)
+        if(Stacks != null && Stacks.Count > 0)
         {
             // TODO consider if this is to resource intensive
             UpdateMovement();
@@ -36,6 +39,7 @@ public class BottomUI : MonoBehaviour
         foreach (Unit u in st.Units)
         {
             var unitObj = stackPanel.GetChild(i);
+            // TODO show the correct sprite based on sprite index
             unitObj.GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite;
             i++;
         }
@@ -65,5 +69,4 @@ public class BottomUI : MonoBehaviour
             unitObj.GetChild(0).GetComponent<TextMeshProUGUI>().text = "";
         }
     }
-
 }
