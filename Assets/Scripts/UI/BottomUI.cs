@@ -12,7 +12,7 @@ public class BottomUI : MonoBehaviour
 {
     // Handle a list of stacks for when more than one is present atop each other
     private List<Stack> Stacks { get; set; }
-    //private Stack Stack { get; set; }
+    private Stack ActiveStack { get; set; }
     // Use this for initialization
     void Start()
     {
@@ -32,20 +32,12 @@ public class BottomUI : MonoBehaviour
     public void SetSelectedStack(Stack st)
     {
         ClearSelectedStack();
+        ActiveStack = st;
         Stacks.Add(st);
-        // get the stack visualization
-        Transform stackPanel = transform.Find("StackUnits");
-        int i = 0;
-        foreach (Unit u in st.Units)
-        {
-            var unitObj = stackPanel.GetChild(i);
-            // TODO show the correct sprite based on sprite index
-            unitObj.GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite;
-            i++;
-        }
+        UpdateUnitGUI();
     }
 
-    private void UpdateMovement()
+    private void UpdateUnitGUI()
     {
         // get the stack visualization
         Transform stackPanel = transform.Find("StackUnits");
@@ -55,10 +47,41 @@ public class BottomUI : MonoBehaviour
             foreach (Unit u in stack.Units)
             {
                 var unitObj = stackPanel.GetChild(i);
+                // TODO show the correct sprite based on sprite index
+                unitObj.GetComponent<Image>().sprite = Resources.Load("UnitSprites/" + u.SpriteName, typeof(Sprite)) as Sprite;
                 unitObj.GetChild(0).GetComponent<TextMeshProUGUI>().text = u.RemainingMovement.ToString();
                 i++;
             }
         }
+    }
+
+    private void UpdateMovement()
+    {
+        // TODO handle clear stack on exit
+        // Get all the stacks of the current stacks owner. If a stack passes over a stack add it temporaely
+        var gameCon = GameController.Instance;
+        var curPlayer = gameCon.CurrentGameData.CurrentPlayer;
+        Stacks = new List<Stack>() { ActiveStack };
+        foreach(var stack in gameCon.AllStacks)
+        {
+            if(stack.Owner.Name == curPlayer.Name)
+            {
+                // this is a stack to check
+                Vector3 pos = stack.transform.position;
+                pos.x = Mathf.Round(pos.x);
+                pos.y = Mathf.Round(pos.y);
+                pos.z = 0;
+                var activePos = ActiveStack.transform.position;
+                activePos.x = Mathf.Round(activePos.x);
+                activePos.y = Mathf.Round(activePos.y);
+                activePos.z = 0;
+                if(pos == activePos && stack != ActiveStack && !Stacks.Contains(stack))
+                {
+                    Stacks.Add(stack);
+                }
+            }
+        }
+        UpdateUnitGUI();
     }
 
     public void ClearSelectedStack()

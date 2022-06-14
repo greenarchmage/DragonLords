@@ -33,18 +33,14 @@ public class GameController : MonoBehaviour
 
     
     // TODO move these out of this class
-    // Turn objects
-    private int PlayerPointer;
+    
     public TerrainTile[,] TerrainTiles { get; private set; }
     public List<Stack>[,] AllStacksGrid = new List<Stack>[Constants.MapSize, Constants.MapSize];
     public List<Stack> AllStacks = new List<Stack>();
     private List<Castle> AllCastles = new List<Castle>();
 
-    //public List<UnitType> UnitTypes = new List<UnitType>();
-
-    private List<Player> Players = new List<Player>();
-
     public GameDataContainer GameDataContainer { get; private set; }
+    public CurrentGameData CurrentGameData { get; private set; }
 
     public static GameController Instance;
 
@@ -68,6 +64,7 @@ public class GameController : MonoBehaviour
          * TEMP code for testing
          ********************************************/
         // Unit Types
+        // Container for all application data
         GameDataContainer = new GameDataContainer();
         GameDataContainer.LoadUnitTypes();
 
@@ -76,23 +73,24 @@ public class GameController : MonoBehaviour
         UnitType dragon = GameDataContainer.UnitTypes[2];
 
         // temp initilization
-        Player interactor = new Player
+        CurrentGameData = new CurrentGameData();
+        CurrentGameData.Players = new List<Player>()
         {
-            Name = "Karath",
-            PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry, dragon }),
-            Gold = 1000,
-            BanneSpriteName = "DragonBanner",
+            new Player
+            {
+                Name = "Karath",
+                PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry, dragon }),
+                Gold = 1000,
+                BanneSpriteName = "DragonBanner",
+            },
+            new Player
+            {
+                Name = "Algast",
+                PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry }),
+                Gold = 100,
+                BanneSpriteName = "KnightBanner",
+            }
         };
-        Players.Add(interactor);
-
-        Player enemy = new Player
-        {
-            Name = "Algast",
-            PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry }),
-            Gold = 100,
-            BanneSpriteName = "KnightBanner",
-        };
-        Players.Add(enemy);
 
         #region TempTerrain
         // temp manual terrain 
@@ -204,7 +202,7 @@ public class GameController : MonoBehaviour
 
         // temp set owner
         Stack playerStack = GameObject.Find("PlayerStack").GetComponent<Stack>();
-        playerStack.Owner = interactor;
+        playerStack.Owner = CurrentGameData.Players[0];
         Unit playerUnit = new Unit(heavyInf);
         Unit playerUnit2 = new Unit(heavyInf);
         Unit playerUnit3 = new Unit(dragon);
@@ -216,7 +214,7 @@ public class GameController : MonoBehaviour
         AddStackToAllStacks(playerStack);
 
         Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
-        enemyStack.Owner = enemy;
+        enemyStack.Owner = CurrentGameData.Players[1];
         Unit enemyUnit = new Unit(heavyInf);
         enemyStack.AddUnit(enemyUnit);
         enemyStack.NextTurn();
@@ -224,7 +222,7 @@ public class GameController : MonoBehaviour
         AddStackToAllStacks(enemyStack);
 
         Stack enemyStack2 = GameObject.Find("EnemyStack2").GetComponent<Stack>();
-        enemyStack2.Owner = enemy;
+        enemyStack2.Owner = CurrentGameData.Players[1];
         Unit enemyUnit2 = new Unit(heavyInf);
         enemyStack2.AddUnit(enemyUnit2);
         enemyStack2.NextTurn();
@@ -232,7 +230,7 @@ public class GameController : MonoBehaviour
         AddStackToAllStacks(enemyStack2);
 
         // Set starting player
-        TopPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(Players[PlayerPointer]);
+        TopPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(CurrentGameData.CurrentPlayer);
 
 
         #region CameraInitialized
@@ -301,7 +299,7 @@ public class GameController : MonoBehaviour
             foreach (RaycastHit2D h in hits)
             {
                 Stack curStack = h.transform.GetComponent<Stack>();
-                if (curStack != null && curStack.Owner == Players[PlayerPointer])
+                if (curStack != null && curStack.Owner == CurrentGameData.CurrentPlayer)
                 {
                     SelectedUnit = h.collider.gameObject;
                     BottomUI.GetComponent<BottomUI>().SetSelectedStack(curStack);
@@ -479,12 +477,9 @@ public class GameController : MonoBehaviour
         }
 
         // change current player
-        PlayerPointer++;
-        if (PlayerPointer >= Players.Count)
-        {
-            PlayerPointer = 0;
-        }
-        TopPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(Players[PlayerPointer]);
+        // Change program turn values
+        CurrentGameData.NextTurn();
+        TopPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(CurrentGameData.CurrentPlayer);
         // clear selected unit
         SelectedUnit = null;
         BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
