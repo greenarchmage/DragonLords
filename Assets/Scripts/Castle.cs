@@ -45,7 +45,7 @@ public class Castle : MonoBehaviour
         Stack enterStack = other.gameObject.GetComponent<Stack>();
         if (enterStack != null)
         {
-            if (enterStack.Owner == Owner)
+            if (enterStack.StackData.Owner == Owner)
             {
                 Garrison.Add(enterStack);
             }
@@ -57,7 +57,7 @@ public class Castle : MonoBehaviour
         Stack enterStack = other.gameObject.GetComponent<Stack>();
         if (enterStack != null)
         {
-            if (enterStack.Owner == Owner)
+            if (enterStack.StackData.Owner == Owner)
             {
                 Garrison.Remove(enterStack);
             }
@@ -221,7 +221,7 @@ public class Castle : MonoBehaviour
         {
             if (Garrison[i].transform.position == pos)
             {
-                if (Garrison[i].Units.Count == Constants.StackSize)
+                if (Garrison[i].StackData.Units.Count == Constants.StackSize)
                 {
                     // The stack is full, skip to next stack
                     // change position
@@ -236,13 +236,7 @@ public class Castle : MonoBehaviour
             }
         }
         // instantiate new stack at pos
-        GameObject obj = Instantiate(Resources.Load("Prefabs/Stack", typeof(GameObject)),
-          pos, Quaternion.identity) as GameObject;
-        Stack newStack = obj.GetComponent<Stack>();
-        newStack.AddUnit(newUnit);
-        newStack.Owner = Owner;
-        Garrison.Add(newStack);
-        GameController.Instance.AddStackToAllStacks(newStack);
+        InstantiateUnit(pos, newUnit);
         return true;
     }
 
@@ -253,7 +247,7 @@ public class Castle : MonoBehaviour
         {
             if (st.transform.position == pos)
             {
-                if (st.Units.Count == Constants.StackSize)
+                if (st.StackData.Units.Count == Constants.StackSize)
                 {
                     // The stack is full, skip to next stack
                     // change position
@@ -279,13 +273,25 @@ public class Castle : MonoBehaviour
             return false;
         }
         // instantiate new stack at pos
+        var stackData = new StackData()
+        {
+            Owner = Owner,
+        };
+        GameController.Instance.InstantiateStack(pos, stackData);
+        InstantiateUnit(pos, newUnit);
+        return true;
+    }
+
+    private void InstantiateUnit(Vector3 pos, Unit newUnit)
+    {
+        // instantiate new stack at pos
         GameObject obj = Instantiate(Resources.Load("Prefabs/Stack", typeof(GameObject)),
           pos, Quaternion.identity) as GameObject;
         Stack newStack = obj.GetComponent<Stack>();
+        newStack.StackData = new StackData();
         newStack.AddUnit(newUnit);
-        newStack.Owner = Owner;
+        newStack.StackData.Owner = Owner;
         Garrison.Add(newStack);
         GameController.Instance.AddStackToAllStacks(newStack);
-        return true;
     }
 }

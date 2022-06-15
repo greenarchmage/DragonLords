@@ -45,7 +45,7 @@ public class BottomUI : MonoBehaviour
         int i = 0;
         foreach(var stack in Stacks)
         {
-            foreach (Unit u in stack.Units)
+            foreach (Unit u in stack.StackData.Units)
             {
                 var unitObj = stackPanel.GetChild(i);
                 // TODO show the correct sprite based on sprite index
@@ -74,7 +74,7 @@ public class BottomUI : MonoBehaviour
         Stacks = new List<Stack>() { ActiveStack };
         foreach(var stack in gameData.AllStacks)
         {
-            if(stack.Owner.Name == curPlayer.Name)
+            if(stack.StackData.Owner.Name == curPlayer.Name)
             {
                 // this is a stack to check
                 Vector3 pos = stack.transform.position;

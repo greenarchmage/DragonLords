@@ -75,7 +75,7 @@ public class GameController : MonoBehaviour
 
         // temp set owner
         Stack playerStack = GameObject.Find("PlayerStack").GetComponent<Stack>();
-        playerStack.Owner = CurrentGameData.Players[0];
+        playerStack.StackData.Owner = CurrentGameData.Players[0];
         var playerUnit = new Unit(heavyInf);
         var playerUnit2 = new Unit(heavyInf);
         var playerUnit3 = new Unit(dragon);
@@ -87,7 +87,7 @@ public class GameController : MonoBehaviour
         AddStackToAllStacks(playerStack);
 
         Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
-        enemyStack.Owner = CurrentGameData.Players[1];
+        enemyStack.StackData.Owner = CurrentGameData.Players[1];
         var enemyUnit = new Unit(heavyInf);
         enemyStack.AddUnit(enemyUnit);
         enemyStack.NextTurn();
@@ -95,7 +95,7 @@ public class GameController : MonoBehaviour
         AddStackToAllStacks(enemyStack);
 
         Stack enemyStack2 = GameObject.Find("EnemyStack2").GetComponent<Stack>();
-        enemyStack2.Owner = CurrentGameData.Players[1];
+        enemyStack2.StackData.Owner = CurrentGameData.Players[1];
         var enemyUnit2 = new Unit(heavyInf);
         enemyStack2.AddUnit(enemyUnit2);
         enemyStack2.NextTurn();
@@ -171,7 +171,7 @@ public class GameController : MonoBehaviour
             foreach (RaycastHit2D h in hits)
             {
                 Stack curStack = h.transform.GetComponent<Stack>();
-                if (curStack != null && curStack.Owner == CurrentGameData.CurrentPlayer)
+                if (curStack != null && curStack.StackData.Owner == CurrentGameData.CurrentPlayer)
                 {
                     SelectedUnit = h.collider.gameObject;
                     BottomUI.GetComponent<BottomUI>().SetSelectedStack(curStack);
@@ -189,15 +189,16 @@ public class GameController : MonoBehaviour
             mousePosClick.z = 0;
 
             
-            Stack curStack = SelectedUnit.gameObject.GetComponent<Stack>();
-            // Handle stack merge
+            Stack curStack = SelectedUnit.GetComponent<Stack>();
+            // check if selected object is a stack
             if (curStack != null)
             {
-                if(mousePosClick == curStack.transform.position)
+                // Handle stack merge
+                if (mousePosClick == curStack.transform.position)
                 {
                     // if there is more stacks on the same field and the stack is selected, merge them
                     RaycastHit2D[] hits = Physics2D.RaycastAll(mousePosClick, Vector2.zero);
-                    List<Stack> possibleMergeStack = new List<Stack>();
+                    var possibleMergeStack = new List<Stack>();
                     foreach (RaycastHit2D h in hits)
                     {
                         Stack hitStack = h.transform.GetComponent<Stack>();
@@ -209,91 +210,91 @@ public class GameController : MonoBehaviour
                     // merge the stacks
                     foreach(var stack in possibleMergeStack)
                     {
-                        curStack.Units.InsertRange(stack.Units.ToEnumerable().ToList());
+                        curStack.StackData.Units.InsertRange(stack.StackData.Units.ToEnumerable().ToList());
                         KillStack(stack);
                     }
                 }
-            }
-            // check if selected object is a stack
-            if (curStack != null && CheckMovementPossible(curStack, CurrentGameData.TerrainTiles[(int)mousePosClick.x, (int)mousePosClick.y]))
-            {
-                // assume the stack will move, unless something is hit
-                bool setMove = true;
-                // hit all objects, incase of castle beneath stack
-                // TODO handle multiple stacked stacks
-                RaycastHit2D[] hits = Physics2D.RaycastAll(mousePosClick, Vector2.zero);
-                foreach (RaycastHit2D h in hits)
+                
+                if (CheckMovementPossible(curStack, CurrentGameData.TerrainTiles[(int)mousePosClick.x, (int)mousePosClick.y]))
                 {
-                    // check hit componenent
-                    Castle cas = h.collider.gameObject.GetComponent<Castle>();
-                    Stack hitStack = h.collider.gameObject.GetComponent<Stack>();
-                    // check if the castle is hostile then do battle
-                    if (cas != null && cas.Owner != curStack.Owner && (Vector3.Distance(cas.transform.position, curStack.transform.position) < 3f))
+                    // assume the stack will move, unless something is hit
+                    bool setMove = true;
+                    // hit all objects, incase of castle beneath stack
+                    // TODO handle multiple stacked stacks
+                    RaycastHit2D[] hits = Physics2D.RaycastAll(mousePosClick, Vector2.zero);
+                    foreach (RaycastHit2D h in hits)
                     {
-                        // Handle battle against castles
-                        bool win = true;
-                        // Fight the entire garrison
-                        //TODO handle fights in groups, adding all the stack together in a great stack, such that bonuses stack
-                        foreach (Stack st in cas.Garrison)
+                        // check hit componenent
+                        Castle cas = h.collider.gameObject.GetComponent<Castle>();
+                        Stack hitStack = h.collider.gameObject.GetComponent<Stack>();
+                        // check if the castle is hostile then do battle
+                        if (cas != null && cas.Owner != curStack.StackData.Owner && (Vector3.Distance(cas.transform.position, curStack.transform.position) < 3f))
                         {
-                            if (curStack.Battle(st))
+                            // Handle battle against castles
+                            bool win = true;
+                            // Fight the entire garrison
+                            //TODO handle fights in groups, adding all the stack together in a great stack, such that bonuses stack
+                            foreach (Stack st in cas.Garrison)
                             {
-                                Debug.Log("Kill hit stack");
-                                KillStack(st);
+                                if (curStack.Battle(st))
+                                {
+                                    Debug.Log("Kill hit stack");
+                                    KillStack(st);
+                                }
+                                else
+                                {
+                                    win = false;
+                                    break;
+                                }
                             }
-                            else
+                            if (!win)
                             {
-                                win = false;
-                                break;
-                            }
-                        }
-                        if (!win)
-                        {
-                            Debug.Log("Kill cur stack");
-                            KillStack(curStack);
-                            SelectedUnit = null;
-                        }
-                        else
-                        {
-                            cas.ChangeOwner(curStack.Owner);
-                        }
-                        break;
-                    }
-                    else if (hitStack != null && curStack != null && curStack.Owner != hitStack.Owner)
-                    {
-                        // Check distance, if next to target, do battle
-                        if (Vector3.Distance(hitStack.transform.position, curStack.transform.position) < 2f)
-                        {
-                            if (curStack.Battle(hitStack))
-                            {
-                                KillStack(hitStack);
-                            }
-                            else
-                            {
+                                Debug.Log("Kill cur stack");
                                 KillStack(curStack);
                                 SelectedUnit = null;
-                                setMove = false;
+                            }
+                            else
+                            {
+                                cas.ChangeOwner(curStack.StackData.Owner);
+                            }
+                            break;
+                        }
+                        else if (hitStack != null && curStack != null && curStack.StackData.Owner != hitStack.StackData.Owner)
+                        {
+                            // Check distance, if next to target, do battle
+                            if (Vector3.Distance(hitStack.transform.position, curStack.transform.position) < 2f)
+                            {
+                                if (curStack.Battle(hitStack))
+                                {
+                                    KillStack(hitStack);
+                                }
+                                else
+                                {
+                                    KillStack(curStack);
+                                    SelectedUnit = null;
+                                    setMove = false;
+                                }
                             }
                         }
                     }
-                }
-                if (setMove)
-                {
-                    // Set blocked paths depending on the castles and stacks
-                    bool[,] obstructed = generateObstructedFields(curStack, CurrentGameData.AllStacks, AllCastles);
+                    if (setMove)
+                    {
+                        // Set blocked paths depending on the castles and stacks
+                        bool[,] obstructed = generateObstructedFields(curStack, CurrentGameData.AllStacks, AllCastles);
 
-                    // Set stack movement path
-                    curStack.Path = AStar.ShortestPath(CurrentGameData.TerrainTiles, obstructed, (int)SelectedUnit.transform.position.x,
-                      (int)SelectedUnit.transform.position.y, (int)mousePosClick.x, (int)mousePosClick.y);
-                }
-                // update the UI, to deal with dead
-                if (SelectedUnit != null)
-                {
-                    BottomUI.GetComponent<BottomUI>().SetSelectedStack(SelectedUnit.GetComponent<Stack>());
-                }
-                else if (SelectedUnit == null)
-                {
-                    BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
+                        // Set stack movement path
+                        curStack.Path = AStar.ShortestPath(CurrentGameData.TerrainTiles, obstructed, (int)SelectedUnit.transform.position.x,
+                          (int)SelectedUnit.transform.position.y, (int)mousePosClick.x, (int)mousePosClick.y);
+                    }
+                    // update the UI, to deal with dead
+                    if (SelectedUnit != null)
+                    {
+                        BottomUI.GetComponent<BottomUI>().SetSelectedStack(SelectedUnit.GetComponent<Stack>());
+                    }
+                    else if (SelectedUnit == null)
+                    {
+                        BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
+                    }
                 }
             }
         }
@@ -371,14 +372,14 @@ public class GameController : MonoBehaviour
         bool[,] obstructed = new bool[CurrentGameData.MapSize, CurrentGameData.MapSize];
         foreach (Stack st in allStacks)
         {
-            if (st.Owner != curStack.Owner)
+            if (st.StackData.Owner != curStack.StackData.Owner)
             {
                 obstructed[(int)st.transform.position.x, (int)st.transform.position.y] = true;
             }
         }
         foreach (Castle cas in allCastles)
         {
-            if (cas.Owner != curStack.Owner)
+            if (cas.Owner != curStack.StackData.Owner)
             {
                 float casPosX = cas.transform.position.x;
                 float casPosY = cas.transform.position.y;
@@ -411,6 +412,16 @@ public class GameController : MonoBehaviour
         CurrentGameData.AllStacks.Add(stack);
     }
 
+    public Stack InstantiateStack(Vector3 pos, StackData stackData)
+    {
+        // instantiate new stack at pos
+        GameObject obj = Instantiate(Resources.Load("Prefabs/Stack", typeof(GameObject)),
+          pos, Quaternion.identity) as GameObject;
+        Stack newStack = obj.GetComponent<Stack>();
+        newStack.SetStackData(stackData);
+        AddStackToAllStacks(newStack);
+        return newStack;
+    }
 
     /// <summary>
     /// Method for instatiating the individual tiles for the level

@@ -4,26 +4,21 @@ using System.Collections.Generic;
 using Assets.Scripts.Pathfinding;
 using Assets.Scripts.Utility;
 using Assets.Scripts.Units;
+using System.Linq;
 
 public class Stack : MonoBehaviour
 {
-    public Player Owner { get; set; }
+    public StackData StackData { get; set; }
     public int StackSize;
-    /// <summary>
-    /// Should not be used to insert units
-    /// </summary>
-    public PriorityQueueMin<Unit> Units { get { return units; } set { units = value; } }
+
     public int Movement { get; set; }
 
     public List<PathNode> Path { get; set; }
 
-    private PriorityQueueMin<Unit> units = new PriorityQueueMin<Unit>();
-
-    private Vector3 oldPos;
     // Use this for initialization
     void Start()
     {
-        oldPos = transform.position;
+        StackData = new StackData();
     }
 
     // Update is called once per frame
@@ -41,7 +36,6 @@ public class Stack : MonoBehaviour
         {
             // move towards current target
             Vector3 newpos = new Vector3(Path[0].Coord[0], Path[0].Coord[1]);
-            oldPos = transform.position;
             transform.position = Vector3.MoveTowards(transform.position, newpos, 0.05f);
             // when target is reached, check if you can move to next target
             if (Vector3.Distance(transform.position, new Vector3(Path[0].Coord[0], Path[0].Coord[1])) <= 0)
@@ -57,7 +51,7 @@ public class Stack : MonoBehaviour
     private void UpdateUnitMovement(int movementChange)
     {
         // TODO handle different cost for different units
-        foreach(var unit in Units)
+        foreach(var unit in StackData.Units)
         {
             unit.RemainingMovement += movementChange;
         }
@@ -70,9 +64,9 @@ public class Stack : MonoBehaviour
     public void AddUnit(Unit unit)
     {
         // Set stack appearance
-        units.Insert(unit);
+        StackData.Units.Insert(unit);
         Unit highestOrder = unit;
-        foreach (Unit u in units)
+        foreach (Unit u in StackData.Units)
         {
             if (u.Order > highestOrder.Order)
             {
@@ -80,15 +74,15 @@ public class Stack : MonoBehaviour
             }
         }
         SetVisuals(highestOrder.SpriteName);
-        StackSize = Units.Count;
+        StackSize = StackData.Units.Count;
     }
 
     private void SetVisuals(string unitSpriteName)
     {
         gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load("UnitSprites/" + unitSpriteName, typeof(Sprite)) as Sprite;
-        if(Owner != null)
+        if(StackData.Owner != null)
         {
-            var banner = Resources.Load("UnitSprites/" + Owner.BanneSpriteName, typeof(Sprite)) as Sprite;
+            var banner = Resources.Load("UnitSprites/" + StackData.Owner.BanneSpriteName, typeof(Sprite)) as Sprite;
             transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = banner;
         }
     }
@@ -96,7 +90,7 @@ public class Stack : MonoBehaviour
     private void SetStackStartMovement()
     {
         Movement = int.MaxValue;
-        foreach (Unit u in units)
+        foreach (Unit u in StackData.Units)
         {
             Movement = Movement > u.Speed ? u.Speed : Movement;
         }
@@ -113,10 +107,10 @@ public class Stack : MonoBehaviour
         // Select first unit in cur stack, select first unit in hit stack
         // Do damage roll, till one dies
         // Select next unit in stack where unit died, if null, the other stack wins
-        while (units.Count != 0 && hitStack.Units.Count != 0)
+        while (StackData.Units.Count != 0 && hitStack.StackData.Units.Count != 0)
         {
-            Unit curStackUnit = units.Min();
-            Unit hitStackUnit = hitStack.Units.Min();
+            Unit curStackUnit = StackData.Units.Min();
+            Unit hitStackUnit = hitStack.StackData.Units.Min();
 
             //Battle section
             //TODO add special abilities
@@ -140,8 +134,8 @@ public class Stack : MonoBehaviour
             if (hitStackUnit.Hits == 0)
             {
                 Debug.Log("Hit stack lost unit");
-                hitStack.Units.DelMin();//.Remove(hitStackUnit);
-                if (hitStack.Units.Count == 0)
+                hitStack.StackData.Units.DelMin();//.Remove(hitStackUnit);
+                if (hitStack.StackData.Units.Count == 0)
                 {
                     return true;
                 }
@@ -149,13 +143,28 @@ public class Stack : MonoBehaviour
             else
             {
                 Debug.Log("Current stack lost unit");
-                units.DelMin();// Remove(curStackUnit);
-                if (units.Count == 0)
+                StackData.Units.DelMin();// Remove(curStackUnit);
+                if (StackData.Units.Count == 0)
                 {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    public void SetStackData(StackData stackData)
+    {
+        StackData = stackData;
+        Unit highestOrder = StackData.Units.First();
+        foreach (Unit u in StackData.Units)
+        {
+            if (u.Order > highestOrder.Order)
+            {
+                highestOrder = u;
+            }
+        }
+        SetVisuals(highestOrder.SpriteName);
+        StackSize = StackData.Units.Count;
     }
 }
