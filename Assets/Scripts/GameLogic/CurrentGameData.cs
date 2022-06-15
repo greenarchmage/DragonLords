@@ -12,7 +12,6 @@ namespace Assets.Scripts.GameLogic
         public List<Player> Players { get; set; }
 
         public TerrainTile[,] TerrainTiles { get; private set; }
-        public List<Stack>[,] AllStacksGrid { get; private set; }
 
         // Turn objects
         public Player CurrentPlayer { get { return Players[PlayerPointer]; } }
@@ -24,7 +23,6 @@ namespace Assets.Scripts.GameLogic
             // TODO remove This is for testing only
             MapSize = 20;
             TerrainTiles = GetTestTerrain();
-            AllStacksGrid = new List<Stack>[MapSize, MapSize];
         }
 
         public void NextTurn()

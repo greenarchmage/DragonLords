@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Assets.Scripts.Units;
 using Assets.Scripts.Utility;
 using Assets.Scripts.GameLogic;
+using System.Linq;
 
 public class GameController : MonoBehaviour
 {
@@ -203,20 +204,45 @@ public class GameController : MonoBehaviour
         if (Input.GetMouseButtonDown(0) && SelectedUnit != null && !CastleMenuUI.activeSelf)
         {
             // Position of mouse pointer
-            Vector3 pos = MainCamera.ScreenToWorldPoint(Input.mousePosition);
-            pos.x = Mathf.Round(pos.x);
-            pos.y = Mathf.Round(pos.y);
-            pos.z = 0;
+            Vector3 mousePosClick = MainCamera.ScreenToWorldPoint(Input.mousePosition);
+            mousePosClick.x = Mathf.Round(mousePosClick.x);
+            mousePosClick.y = Mathf.Round(mousePosClick.y);
+            mousePosClick.z = 0;
 
-            // check if selected object is a stack
+            
             Stack curStack = SelectedUnit.gameObject.GetComponent<Stack>();
-            if (curStack != null && checkMovementPossible(curStack, CurrentGameData.TerrainTiles[(int)pos.x, (int)pos.y]))
+            // Handle stack merge
+            if (curStack != null)
+            {
+                if(mousePosClick == curStack.transform.position)
+                {
+                    // if there is more stacks on the same field and the stack is selected, merge them
+                    RaycastHit2D[] hits = Physics2D.RaycastAll(mousePosClick, Vector2.zero);
+                    List<Stack> possibleMergeStack = new List<Stack>();
+                    foreach (RaycastHit2D h in hits)
+                    {
+                        Stack hitStack = h.transform.GetComponent<Stack>();
+                        if (curStack != hitStack)
+                        {
+                            possibleMergeStack.Add(hitStack);
+                        }
+                    }
+                    // merge the stacks
+                    foreach(var stack in possibleMergeStack)
+                    {
+                        curStack.Units.InsertRange(stack.Units.ToEnumerable().ToList());
+                        KillStack(stack);
+                    }
+                }
+            }
+            // check if selected object is a stack
+            if (curStack != null && checkMovementPossible(curStack, CurrentGameData.TerrainTiles[(int)mousePosClick.x, (int)mousePosClick.y]))
             {
                 // assume the stack will move, unless something is hit
                 bool setMove = true;
                 // hit all objects, incase of castle beneath stack
                 // TODO handle multiple stacked stacks
-                RaycastHit2D[] hits = Physics2D.RaycastAll(pos, Vector2.zero);
+                RaycastHit2D[] hits = Physics2D.RaycastAll(mousePosClick, Vector2.zero);
                 foreach (RaycastHit2D h in hits)
                 {
                     // check hit componenent
@@ -279,7 +305,7 @@ public class GameController : MonoBehaviour
 
                     // Set stack movement path
                     curStack.Path = AStar.ShortestPath(CurrentGameData.TerrainTiles, obstructed, (int)SelectedUnit.transform.position.x,
-                      (int)SelectedUnit.transform.position.y, (int)pos.x, (int)pos.y);
+                      (int)SelectedUnit.transform.position.y, (int)mousePosClick.x, (int)mousePosClick.y);
                 }
                 // update the UI, to deal with dead
                 if (SelectedUnit != null)
@@ -330,22 +356,6 @@ public class GameController : MonoBehaviour
         {
             SelectedUnit = null;
             BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
-        }
-
-        // TODO remove
-        //Test location mechanism
-        if (Input.GetKeyDown(KeyCode.LeftControl))
-        {
-            foreach (List<Stack> list in CurrentGameData.AllStacksGrid)
-            {
-                if (list != null)
-                {
-                    foreach (Stack st in list)
-                    {
-                        Debug.Log("Pos " + st.transform.position.ToString());
-                    }
-                }
-            }
         }
     }
 
@@ -423,28 +433,12 @@ public class GameController : MonoBehaviour
     public void RemoveStackFromAllStacks(Stack stack)
     {
         AllStacks.Remove(stack);
-        CurrentGameData.AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y].Remove(stack);
     }
     public void AddStackToAllStacks(Stack stack)
     {
         AllStacks.Add(stack);
-        addStackToGrid(stack);
     }
 
-    public void UpdateStackPosition(Stack stack, Vector3 oldPos)
-    {
-        CurrentGameData.AllStacksGrid[(int)oldPos.x, (int)oldPos.y].Remove(stack);
-        addStackToGrid(stack);
-    }
-
-    private void addStackToGrid(Stack stack)
-    {
-        if (CurrentGameData.AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y] == null)
-        {
-            CurrentGameData.AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y] = new List<Stack>();
-        }
-        CurrentGameData.AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y].Add(stack);
-    }
 
     /// <summary>
     /// Method for instatiating the individual tiles for the level

@@ -43,7 +43,6 @@ public class Stack : MonoBehaviour
             Vector3 newpos = new Vector3(Path[0].Coord[0], Path[0].Coord[1]);
             oldPos = transform.position;
             transform.position = Vector3.MoveTowards(transform.position, newpos, 0.05f);
-            GameController.Instance.UpdateStackPosition(this, oldPos);
             // when target is reached, check if you can move to next target
             if (Vector3.Distance(transform.position, new Vector3(Path[0].Coord[0], Path[0].Coord[1])) <= 0)
             {

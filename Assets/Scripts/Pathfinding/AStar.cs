@@ -51,7 +51,7 @@ namespace Assets.Scripts.Pathfinding
         }
         // search all the neighbours
         List<Node> neighbours = current.generateNeighbours(terrainLayout, obstructed, distanceMatrix, goalX, goalY);
-        openSet.insertRange(neighbours);
+        openSet.InsertRange(neighbours);
       }
       // we failed to find the goal
       return null;
