@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Assets.Scripts.Units;
+using Assets.Scripts.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +12,7 @@ namespace Assets.Scripts.GameLogic
     {
         public int MapSize { get; set; }
         public List<Player> Players { get; set; }
+        public List<Stack> AllStacks = new List<Stack>();
 
         public TerrainTile[,] TerrainTiles { get; private set; }
 
@@ -18,11 +21,31 @@ namespace Assets.Scripts.GameLogic
 
         private int PlayerPointer;
 
-        public CurrentGameData()
+        public CurrentGameData(GameDataContainer gameDataContainer)
         {
             // TODO remove This is for testing only
+            UnitType heavyInf = gameDataContainer.UnitTypes[0];
+            UnitType cavalry = gameDataContainer.UnitTypes[1];
+            UnitType dragon = gameDataContainer.UnitTypes[2];
             MapSize = 20;
             TerrainTiles = GetTestTerrain();
+            Players = new List<Player>()
+            {
+                new Player
+                {
+                    Name = "Karath",
+                    PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry, dragon }),
+                    Gold = 1000,
+                    BanneSpriteName = "DragonBanner",
+                },
+                new Player
+                {
+                    Name = "Algast",
+                    PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry }),
+                    Gold = 1000,
+                    BanneSpriteName = "KnightBanner",
+                }
+            };
         }
 
         public void NextTurn()
@@ -35,6 +58,10 @@ namespace Assets.Scripts.GameLogic
             }
         }
 
+        public void RemoveStackFromAllStacks(Stack stack)
+        {
+            AllStacks.Remove(stack);
+        }
 
         private TerrainTile[,] GetTestTerrain()
         {

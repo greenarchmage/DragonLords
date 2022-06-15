@@ -69,10 +69,10 @@ public class BottomUI : MonoBehaviour
     private void UpdateMovement()
     {
         // Get all the stacks of the current stacks owner. If a stack passes over a stack add it temporaely
-        var gameCon = GameController.Instance;
-        var curPlayer = gameCon.CurrentGameData.CurrentPlayer;
+        var gameData = GameController.Instance.CurrentGameData;
+        var curPlayer = gameData.CurrentPlayer;
         Stacks = new List<Stack>() { ActiveStack };
-        foreach(var stack in gameCon.AllStacks)
+        foreach(var stack in gameData.AllStacks)
         {
             if(stack.Owner.Name == curPlayer.Name)
             {

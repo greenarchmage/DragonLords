@@ -32,9 +32,7 @@ public class GameController : MonoBehaviour
     // TODO Move to options
     private float PanSpeed = 0.10f;
 
-    
     // TODO move these out of this class
-    public List<Stack> AllStacks = new List<Stack>();
     private List<Castle> AllCastles = new List<Castle>();
 
     public GameDataContainer GameDataContainer { get; private set; }
@@ -67,28 +65,10 @@ public class GameController : MonoBehaviour
         GameDataContainer.LoadUnitTypes();
 
         UnitType heavyInf = GameDataContainer.UnitTypes[0];
-        UnitType cavalry = GameDataContainer.UnitTypes[1];
         UnitType dragon = GameDataContainer.UnitTypes[2];
 
         // temp initilization
-        CurrentGameData = new CurrentGameData();
-        CurrentGameData.Players = new List<Player>()
-        {
-            new Player
-            {
-                Name = "Karath",
-                PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry, dragon }),
-                Gold = 1000,
-                BanneSpriteName = "DragonBanner",
-            },
-            new Player
-            {
-                Name = "Algast",
-                PlayerUnits = new PriorityQueueMin<UnitType>(new UnitType[] { heavyInf, cavalry }),
-                Gold = 100,
-                BanneSpriteName = "KnightBanner",
-            }
-        };
+        CurrentGameData = new CurrentGameData(GameDataContainer);
 
         // instantiate terrain, main function
         InstantiateTerrain(CurrentGameData.TerrainTiles);
@@ -96,9 +76,9 @@ public class GameController : MonoBehaviour
         // temp set owner
         Stack playerStack = GameObject.Find("PlayerStack").GetComponent<Stack>();
         playerStack.Owner = CurrentGameData.Players[0];
-        Unit playerUnit = new Unit(heavyInf);
-        Unit playerUnit2 = new Unit(heavyInf);
-        Unit playerUnit3 = new Unit(dragon);
+        var playerUnit = new Unit(heavyInf);
+        var playerUnit2 = new Unit(heavyInf);
+        var playerUnit3 = new Unit(dragon);
         playerStack.AddUnit(playerUnit);
         playerStack.AddUnit(playerUnit2);
         playerStack.AddUnit(playerUnit3);
@@ -108,7 +88,7 @@ public class GameController : MonoBehaviour
 
         Stack enemyStack = GameObject.Find("EnemyStack").GetComponent<Stack>();
         enemyStack.Owner = CurrentGameData.Players[1];
-        Unit enemyUnit = new Unit(heavyInf);
+        var enemyUnit = new Unit(heavyInf);
         enemyStack.AddUnit(enemyUnit);
         enemyStack.NextTurn();
 
@@ -116,7 +96,7 @@ public class GameController : MonoBehaviour
 
         Stack enemyStack2 = GameObject.Find("EnemyStack2").GetComponent<Stack>();
         enemyStack2.Owner = CurrentGameData.Players[1];
-        Unit enemyUnit2 = new Unit(heavyInf);
+        var enemyUnit2 = new Unit(heavyInf);
         enemyStack2.AddUnit(enemyUnit2);
         enemyStack2.NextTurn();
 
@@ -124,7 +104,6 @@ public class GameController : MonoBehaviour
 
         // Set starting player
         TopPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(CurrentGameData.CurrentPlayer);
-
 
         #region CameraInitialized
         // camera init vals
@@ -236,7 +215,7 @@ public class GameController : MonoBehaviour
                 }
             }
             // check if selected object is a stack
-            if (curStack != null && checkMovementPossible(curStack, CurrentGameData.TerrainTiles[(int)mousePosClick.x, (int)mousePosClick.y]))
+            if (curStack != null && CheckMovementPossible(curStack, CurrentGameData.TerrainTiles[(int)mousePosClick.x, (int)mousePosClick.y]))
             {
                 // assume the stack will move, unless something is hit
                 bool setMove = true;
@@ -301,7 +280,7 @@ public class GameController : MonoBehaviour
                 if (setMove)
                 {
                     // Set blocked paths depending on the castles and stacks
-                    bool[,] obstructed = generateObstructedFields(curStack, AllStacks, AllCastles);
+                    bool[,] obstructed = generateObstructedFields(curStack, CurrentGameData.AllStacks, AllCastles);
 
                     // Set stack movement path
                     curStack.Path = AStar.ShortestPath(CurrentGameData.TerrainTiles, obstructed, (int)SelectedUnit.transform.position.x,
@@ -373,7 +352,7 @@ public class GameController : MonoBehaviour
             cas.NextTurn();
         }
 
-        foreach (Stack st in AllStacks)
+        foreach (Stack st in CurrentGameData.AllStacks)
         {
             st.NextTurn();
         }
@@ -385,13 +364,6 @@ public class GameController : MonoBehaviour
         // clear selected unit
         SelectedUnit = null;
         BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
-
-        // TODO set the players last selected stack
-        // update the UI, to deal with new Units
-        //if (selectedUnit != null)
-        //{
-        //  mainUI.GetComponent<MainUI>().SetSelectedStack(selectedUnit.GetComponent<Stack>());
-        //}
     }
 
     private bool[,] generateObstructedFields(Stack curStack, List<Stack> allStacks, List<Castle> allCastles)
@@ -419,24 +391,24 @@ public class GameController : MonoBehaviour
         return obstructed;
     }
 
-    private bool checkMovementPossible(Stack curStack, TerrainTile tile)
+    private bool CheckMovementPossible(Stack curStack, TerrainTile tile)
     {
         return curStack.Movement >= tile.Movecost;
     }
 
     private void KillStack(Stack stack)
     {
-        RemoveStackFromAllStacks(stack);
+        CurrentGameData.RemoveStackFromAllStacks(stack);
         Destroy(stack.gameObject);
     }
 
-    public void RemoveStackFromAllStacks(Stack stack)
-    {
-        AllStacks.Remove(stack);
-    }
+    /// <summary>
+    /// Adds stack to the current game data
+    /// </summary>
+    /// <param name="stack"></param>
     public void AddStackToAllStacks(Stack stack)
     {
-        AllStacks.Add(stack);
+        CurrentGameData.AllStacks.Add(stack);
     }
 
 
@@ -479,6 +451,8 @@ public class GameController : MonoBehaviour
                 }
                 if (terrainType == "CastlePlaceholder")
                 {
+                    // In order to not place several castles on top each other check distance
+                    // TODO handle this more gracefully
                     bool toClose = false;
                     foreach (Castle cas in AllCastles)
                     {
