@@ -102,9 +102,6 @@ public class GameController : MonoBehaviour
 
         AddStackToAllStacks(enemyStack2);
 
-        // Set starting player
-        TopPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(CurrentGameData.CurrentPlayer);
-
         #region CameraInitialized
         // camera init vals
         // limit the camera based on the map size
@@ -361,7 +358,6 @@ public class GameController : MonoBehaviour
         // change current player
         // Change program turn values
         CurrentGameData.NextTurn();
-        TopPanel.GetComponent<TopPanelUI>().SetCurrentPlayer(CurrentGameData.CurrentPlayer);
         // clear selected unit
         SelectedUnit = null;
         BottomUI.GetComponent<BottomUI>().ClearSelectedStack();
