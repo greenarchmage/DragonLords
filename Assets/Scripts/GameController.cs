@@ -33,9 +33,6 @@ public class GameController : MonoBehaviour
 
     
     // TODO move these out of this class
-    
-    public TerrainTile[,] TerrainTiles { get; private set; }
-    public List<Stack>[,] AllStacksGrid = new List<Stack>[Constants.MapSize, Constants.MapSize];
     public List<Stack> AllStacks = new List<Stack>();
     private List<Castle> AllCastles = new List<Castle>();
 
@@ -92,113 +89,8 @@ public class GameController : MonoBehaviour
             }
         };
 
-        #region TempTerrain
-        // temp manual terrain 
-        TerrainTiles = new TerrainTile[Constants.MapSize, Constants.MapSize];
-        // Fill with grass
-        for (int i = 0; i < TerrainTiles.GetLength(0); i++)
-        {
-            for (int j = 0; j < TerrainTiles.GetLength(1); j++)
-            {
-                TerrainTiles[i, j] = new TerrainTile(TerrainTile.TerrainType.Grass);
-            }
-        }
-        // top left castle
-        tempBuildCastle(TerrainTiles, 2, 2);
-        // top right castle
-        tempBuildCastle(TerrainTiles, 16, 2);
-        // center castle 
-        tempBuildCastle(TerrainTiles, 10, 7);
-        // bottom center castle
-        tempBuildCastle(TerrainTiles, 9, 15);
-        // bottom right castle
-        tempBuildCastle(TerrainTiles, 15, 18);
-
-        // top right forest
-        for (int i = 0; i < 4; i++)
-        {
-            TerrainTiles[16 + i, 0] = new TerrainTile(TerrainTile.TerrainType.Forest);
-        }
-        TerrainTiles[19, 1] = new TerrainTile(TerrainTile.TerrainType.Forest);
-        TerrainTiles[19, 2] = new TerrainTile(TerrainTile.TerrainType.Forest);
-
-        // bottom left forest
-        for (int i = 0; i < 2; i++)
-        {
-            for (int j = 0; j < 2; j++)
-            {
-                TerrainTiles[4 + i, 17 + j] = new TerrainTile(TerrainTile.TerrainType.Forest);
-            }
-        }
-        TerrainTiles[6, 18] = new TerrainTile(TerrainTile.TerrainType.Forest);
-
-        // center mountain
-        TerrainTiles[9, 4] = new TerrainTile(TerrainTile.TerrainType.Mountain);
-        TerrainTiles[9, 5] = new TerrainTile(TerrainTile.TerrainType.Mountain);
-        for (int i = 0; i < 2; i++)
-        {
-            for (int j = 0; j < 2; j++)
-            {
-                TerrainTiles[7 + i, 5 + j] = new TerrainTile(TerrainTile.TerrainType.Mountain);
-            }
-        }
-        TerrainTiles[6, 7] = new TerrainTile(TerrainTile.TerrainType.Mountain);
-        TerrainTiles[7, 7] = new TerrainTile(TerrainTile.TerrainType.Mountain);
-
-        // center road
-        for (int i = 0; i < 7; i++)
-        {
-            TerrainTiles[9, 8 + i] = new TerrainTile(TerrainTile.TerrainType.Road);
-        }
-
-        // Center bridge, overwrites road
-        TerrainTiles[9, 12] = new TerrainTile(TerrainTile.TerrainType.Bridge);
-
-        // bottom road
-        for (int i = 0; i < 2; i++)
-        {
-            TerrainTiles[11 + i, 16] = new TerrainTile(TerrainTile.TerrainType.Road);
-        }
-        for (int i = 0; i < 4; i++)
-        {
-            TerrainTiles[12 + i, 17] = new TerrainTile(TerrainTile.TerrainType.Road);
-        }
-
-        // water
-        tempWaterVertLine(TerrainTiles, 4, 15, 19);
-        tempWaterVertLine(TerrainTiles, 6, 14, 18);
-        tempWaterVertLine(TerrainTiles, 6, 13, 17);
-        tempWaterVertLine(TerrainTiles, 8, 12, 16);
-        tempWaterVertLine(TerrainTiles, 8, 12, 15);
-        tempWaterVertLine(TerrainTiles, 11, 12, 14);
-        tempWaterHoriLine(TerrainTiles, 10, 13, 12);
-
-        for (int i = 0; i < 6; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                TerrainTiles[8 + i, 0 + j] = new TerrainTile(TerrainTile.TerrainType.Water);
-            }
-        }
-
-        tempWaterVertLine(TerrainTiles, 0, 4, 7);
-        tempWaterVertLine(TerrainTiles, 0, 6, 6);
-        tempWaterVertLine(TerrainTiles, 0, 7, 5);
-        tempWaterHoriLine(TerrainTiles, 0, 5, 0);
-
-        tempWaterVertLine(TerrainTiles, 5, 13, 4);
-        tempWaterVertLine(TerrainTiles, 5, 14, 3);
-        tempWaterVertLine(TerrainTiles, 5, 19, 2);
-        tempWaterVertLine(TerrainTiles, 5, 19, 1);
-        tempWaterVertLine(TerrainTiles, 0, 19, 0);
-
-        tempWaterVertLine(TerrainTiles, 11, 12, 5);
-        tempWaterHoriLine(TerrainTiles, 6, 8, 12);
-        TerrainTiles[2, 5] = new TerrainTile(TerrainTile.TerrainType.Bridge);
-        #endregion
         // instantiate terrain, main function
-        InstantiateTerrain(TerrainTiles);
-
+        InstantiateTerrain(CurrentGameData.TerrainTiles);
 
         // temp set owner
         Stack playerStack = GameObject.Find("PlayerStack").GetComponent<Stack>();
@@ -243,11 +135,11 @@ public class GameController : MonoBehaviour
         float uiPaddingBot = 2 * MainCamera.orthographicSize * (BottomUI.GetComponent<RectTransform>().rect.height / Screen.height);
         float uiPaddingTop = 2 * MainCamera.orthographicSize * (TopPanel.GetComponent<RectTransform>().rect.height / Screen.height);
         // off set is calculated based on the size of the map
-        float offset = Constants.MapSize / 2f - 0.5f;
-        CameraMinX = horzExtent - ((float)Constants.MapSize) / 2.0f + offset;
-        CameraMaxX = ((float)Constants.MapSize) / 2.0f - horzExtent + offset;
-        CameraMinY = vertExtent - ((float)Constants.MapSize) / 2.0f + offset - uiPaddingBot;
-        CameraMaxY = ((float)Constants.MapSize) / 2.0f - vertExtent + offset + uiPaddingTop;
+        float offset = CurrentGameData.MapSize / 2f - 0.5f;
+        CameraMinX = horzExtent - ((float)CurrentGameData.MapSize) / 2.0f + offset;
+        CameraMaxX = ((float)CurrentGameData.MapSize) / 2.0f - horzExtent + offset;
+        CameraMinY = vertExtent - ((float)CurrentGameData.MapSize) / 2.0f + offset - uiPaddingBot;
+        CameraMaxY = ((float)CurrentGameData.MapSize) / 2.0f - vertExtent + offset + uiPaddingTop;
         if (CameraMaxX - CameraMinX < 0)
         {
             float diffX = CameraMinX - CameraMaxX;
@@ -318,7 +210,7 @@ public class GameController : MonoBehaviour
 
             // check if selected object is a stack
             Stack curStack = SelectedUnit.gameObject.GetComponent<Stack>();
-            if (curStack != null && checkMovementPossible(curStack, TerrainTiles[(int)pos.x, (int)pos.y]))
+            if (curStack != null && checkMovementPossible(curStack, CurrentGameData.TerrainTiles[(int)pos.x, (int)pos.y]))
             {
                 // assume the stack will move, unless something is hit
                 bool setMove = true;
@@ -386,7 +278,7 @@ public class GameController : MonoBehaviour
                     bool[,] obstructed = generateObstructedFields(curStack, AllStacks, AllCastles);
 
                     // Set stack movement path
-                    curStack.Path = AStar.ShortestPath(TerrainTiles, obstructed, (int)SelectedUnit.transform.position.x,
+                    curStack.Path = AStar.ShortestPath(CurrentGameData.TerrainTiles, obstructed, (int)SelectedUnit.transform.position.x,
                       (int)SelectedUnit.transform.position.y, (int)pos.x, (int)pos.y);
                 }
                 // update the UI, to deal with dead
@@ -444,7 +336,7 @@ public class GameController : MonoBehaviour
         //Test location mechanism
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
-            foreach (List<Stack> list in AllStacksGrid)
+            foreach (List<Stack> list in CurrentGameData.AllStacksGrid)
             {
                 if (list != null)
                 {
@@ -494,7 +386,7 @@ public class GameController : MonoBehaviour
 
     private bool[,] generateObstructedFields(Stack curStack, List<Stack> allStacks, List<Castle> allCastles)
     {
-        bool[,] obstructed = new bool[Constants.MapSize, Constants.MapSize];
+        bool[,] obstructed = new bool[CurrentGameData.MapSize, CurrentGameData.MapSize];
         foreach (Stack st in allStacks)
         {
             if (st.Owner != curStack.Owner)
@@ -531,7 +423,7 @@ public class GameController : MonoBehaviour
     public void RemoveStackFromAllStacks(Stack stack)
     {
         AllStacks.Remove(stack);
-        AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y].Remove(stack);
+        CurrentGameData.AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y].Remove(stack);
     }
     public void AddStackToAllStacks(Stack stack)
     {
@@ -541,41 +433,17 @@ public class GameController : MonoBehaviour
 
     public void UpdateStackPosition(Stack stack, Vector3 oldPos)
     {
-        AllStacksGrid[(int)oldPos.x, (int)oldPos.y].Remove(stack);
+        CurrentGameData.AllStacksGrid[(int)oldPos.x, (int)oldPos.y].Remove(stack);
         addStackToGrid(stack);
     }
 
     private void addStackToGrid(Stack stack)
     {
-        if (AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y] == null)
+        if (CurrentGameData.AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y] == null)
         {
-            AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y] = new List<Stack>();
+            CurrentGameData.AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y] = new List<Stack>();
         }
-        AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y].Add(stack);
-    }
-    private void tempBuildCastle(TerrainTile[,] terrainLayout, int xcoord, int ycoord)
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            for (int j = 0; j < 2; j++)
-            {
-                terrainLayout[xcoord + i, ycoord + j] = new TerrainTile(TerrainTile.TerrainType.Castle);
-            }
-        }
-    }
-    private void tempWaterVertLine(TerrainTile[,] terrainLayout, int starty, int endy, int x)
-    {
-        for (int i = 0; i < endy - starty + 1; i++)
-        {
-            terrainLayout[x, starty + i] = new TerrainTile(TerrainTile.TerrainType.Water);
-        }
-    }
-    private void tempWaterHoriLine(TerrainTile[,] terrainLayout, int startx, int endx, int y)
-    {
-        for (int i = 0; i < endx - startx + 1; i++)
-        {
-            terrainLayout[startx + i, y] = new TerrainTile(TerrainTile.TerrainType.Water);
-        }
+        CurrentGameData.AllStacksGrid[(int)stack.transform.position.x, (int)stack.transform.position.y].Add(stack);
     }
 
     /// <summary>

@@ -39,6 +39,7 @@ public class BottomUI : MonoBehaviour
 
     private void UpdateUnitGUI()
     {
+        ClearStackGUI();
         // get the stack visualization
         Transform stackPanel = transform.Find("StackUnits");
         int i = 0;
@@ -54,10 +55,19 @@ public class BottomUI : MonoBehaviour
             }
         }
     }
+    private void ClearStackGUI()
+    {
+        Transform stackPanel = transform.Find("StackUnits");
+        for (int i = 0; i < Constants.StackSize; i++)
+        {
+            var unitObj = stackPanel.GetChild(i);
+            unitObj.GetComponent<Image>().sprite = null;
+            unitObj.GetChild(0).GetComponent<TextMeshProUGUI>().text = "";
+        }
+    }
 
     private void UpdateMovement()
     {
-        // TODO handle clear stack on exit
         // Get all the stacks of the current stacks owner. If a stack passes over a stack add it temporaely
         var gameCon = GameController.Instance;
         var curPlayer = gameCon.CurrentGameData.CurrentPlayer;
@@ -87,12 +97,6 @@ public class BottomUI : MonoBehaviour
     public void ClearSelectedStack()
     {
         Stacks = new List<Stack>();
-        Transform stackPanel = transform.Find("StackUnits");
-        for (int i = 0; i < Constants.StackSize; i++)
-        {
-            var unitObj = stackPanel.GetChild(i);
-            unitObj.GetComponent<Image>().sprite = null;
-            unitObj.GetChild(0).GetComponent<TextMeshProUGUI>().text = "";
-        }
+        ClearStackGUI();
     }
 }

@@ -109,7 +109,8 @@ public class Castle : MonoBehaviour
                 bool inside = true;
                 while (!unitPlaced)
                 {
-                    if ((int)curPos.x >= Constants.MapSize && (int)curPos.y >= Constants.MapSize)
+                    var gameDate = GameController.Instance.CurrentGameData;
+                    if ((int)curPos.x >= gameDate.MapSize && (int)curPos.y >= gameDate.MapSize)
                     {
                         // the position is outside the map
                         //TODO handle castles not being centered
@@ -263,11 +264,12 @@ public class Castle : MonoBehaviour
                 }
             }
         }
-        if ((int)pos.x >= Constants.MapSize || (int)pos.y >= Constants.MapSize)
+        var gameDate = GameController.Instance.CurrentGameData;
+        if ((int)pos.x >= gameDate.MapSize || (int)pos.y >= gameDate.MapSize)
         {
             return false;
         }
-        TerrainTile.MoveType currentTile = GameController.Instance.TerrainTiles[(int)pos.x, (int)pos.y].MoveGroup;
+        TerrainTile.MoveType currentTile = gameDate.TerrainTiles[(int)pos.x, (int)pos.y].MoveGroup;
         if (currentTile == TerrainTile.MoveType.Impassable ||
           (currentTile == TerrainTile.MoveType.Flying || currentTile == TerrainTile.MoveType.WaterPassable) && CurrentProduction.MoveType != TerrainTile.MoveType.Flying)
         {
